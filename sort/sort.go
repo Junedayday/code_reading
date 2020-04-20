@@ -149,8 +149,8 @@ func doPivot(data Interface, lo, hi int) (midlo, midhi int) {
 		c--
 	}
 	// 总结一下：
-	// 排序思想是以pivot为中心值，将后面的元素划分为2段：
-	// 左边为<=pivot的，右边为>pivot
+	// 快速排序思想是以pivot为中心值，将后面的元素划分为2段：
+	// 左边为<=pivot的，右边为>=pivot
 	
 	// If hi-c<3 then there are duplicates (by property of median of nine).
 	// Let's be a bit more conservative, and set border to 5.
@@ -160,7 +160,7 @@ func doPivot(data Interface, lo, hi int) (midlo, midhi int) {
 	// 因为c为划分pivot的大小的临界值，所以在9值划分时，正常来说，应该是两边各4个
 	// 由于左边是<=，多了个相等的情况，所以5，3分布，也是没有问题
 	// 如果hi-c<3，c的值明显偏向于hi，说明有多个和pivot重复值
-	// 为了更保守一点，所以设置为5
+	// 为了更保守一点，所以设置为5(反正只是多校验一次而已)
 	protect := hi-c < 5
 	// 即便大于等于5，也可能是因为元素总值很多，所以对比hi-c是否小于总数量的1/4
 	if !protect && hi-c < (hi-lo)/4 {
@@ -226,13 +226,13 @@ func quickSort(data Interface, a, b, maxDepth int) {
 		maxDepth--
 		// 从字面来看，取出了两个值：lo和hi
 		// TODO: doPivot 是怎么取值的？
-		// pivot：中间值
+		// pivot：快速排序的分区点
 		mlo, mhi := doPivot(data, a, b)
 		// Avoiding recursion on the larger subproblem guarantees
 		// a stack depth of at most lg(b-a).
-		// 规模较小的进行递归
-		// 大规模的数据，继续在循环中进行
-		// 知识点3：为什么这里不进行两个递归？
+		// 数据规模较小的进行递归
+		// 数据规模较大的继续在循环中进行
+		// 为什么这里不进行两个递归？
 		// 其实用两个递归也是可以实现的，但这里是偏工程化的思想，我个人能想到的有两点：
 		// 1. 减少一个递归，就能减少一次压栈、出栈的操作
 		// 2. 那为什么选择小规模的数据进行递归呢？我觉得小规模的函数，更容易快速完成，释放空间
@@ -245,7 +245,7 @@ func quickSort(data Interface, a, b, maxDepth int) {
 		}
 	}
 	// b-a = 1时代表只有一个元素，无需排序
-	// 元素小于12时，进行一次gap为6的Shell排序（间隔为6的元素之间进行一次）,保证数据整体的一致性
+	// 元素个数小于等于12时，进行一次gap为6的Shell排序（间隔为6的元素之间进行一次）,保证数据整体的一致性
 	// 再进行一次插入排序
 	if b-a > 1 {
 		// Do ShellSort pass with gap 6
@@ -265,7 +265,9 @@ func quickSort(data Interface, a, b, maxDepth int) {
 // data.Less and data.Swap. The sort is not guaranteed to be stable.
 
 // 前置知识点：插入排序、堆排序、快速排序、Shell排序
-// 稳定性
+// 稳定性 sort.Stable
+// pivot 快速排序的分区点
+// heapify 堆化
 func Sort(data Interface) {
 	n := data.Len()
 	// TODO: 快速排序，真的跟它的名字一模一样吗？
@@ -277,7 +279,7 @@ func Sort(data Interface) {
 // 设置快速排序到堆排序的阀值
 // 为什么要设置这个阀值?
 // 以快排为例，需要选择一个pivot-中心点，划分所有元素到到pivot的左右两边，再进行排序
-// 如果pivot选择得好，那就是需要logN次即可，但极端情况下会选择到边缘元素，那就需要N次
+// 如果pivot选择得好，那就是需要复杂度O(logN)次即可。但在极端情况下，每次都选择到最边缘的元素，那就需要O(N)次。
 func maxDepth(n int) int {
 	var depth int
 	for i := n; i > 0; i >>= 1 {

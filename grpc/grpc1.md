@@ -68,7 +68,7 @@ func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloRe
 lis, err := net.Listen("tcp", port)
 ```
 
-因为grpc的应用层是基于HTTP2的，所以这里不出意外，监听的是tcp端口
+因为gRPC的应用层是基于HTTP2的，所以这里不出意外，监听的是tcp端口
 
 
 

@@ -25,7 +25,7 @@ import (
 	"context"
 	"log"
 	"net"
-
+	
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	
@@ -38,7 +38,7 @@ const (
 
 // server is used to implement helloworld.GreeterServer.
 type server struct {
-	pb.UnimplementedGreeterServer
+	// pb.UnimplementedGreeterServer
 }
 
 // SayHello implements helloworld.GreeterServer

@@ -2,6 +2,7 @@
 
 Start Our Travel for Go Code Reading
 
+- [基础特性分析](basic/basic.md)
 - [Sort](sort/sort.go)
 - [HTTP](http/server.go)
 - gRPC

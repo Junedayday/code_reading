@@ -54,6 +54,7 @@ func ctxDeadline() {
 	time.Sleep(time.Second)
 }
 
+// Tip: 用Key/Value传递参数，可以浅浅封装一层，转化为自己想要的结构体
 func ctxValue() {
 	ctx := context.WithValue(context.Background(), "user", "junedayday")
 	go func(ctx context.Context) {

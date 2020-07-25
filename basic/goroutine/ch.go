@@ -145,3 +145,20 @@ func chBuffer() {
 		}
 	}
 }
+
+func chBufferRange() {
+	var ch = make(chan int, 3)
+
+	go func(ch chan int) {
+		// Tip: 由于设置了长度，相当于一个消息队列，这里并不会阻塞
+		ch <- 1
+		ch <- 2
+		ch <- 3
+		close(ch)
+		fmt.Println("send finished")
+	}(ch)
+
+	for i := range ch {
+		fmt.Println("receive", i)
+	}
+}

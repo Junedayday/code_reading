@@ -26,4 +26,5 @@ func main() {
 	//chCloseErr()
 	//chTask()
 	//chBuffer()
+	//chBufferRange()
 }

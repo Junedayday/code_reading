@@ -27,4 +27,7 @@ func main() {
 	//chTask()
 	//chBuffer()
 	//chBufferRange()
+
+	//passBall()
+	//passBallWithClose()
 }

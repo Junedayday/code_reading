@@ -30,4 +30,9 @@ func main() {
 
 	//passBall()
 	//passBallWithClose()
+
+	/*
+		Tip: sync.Map - 多协程下的map实现
+	*/
+	syncMap()
 }

@@ -15,7 +15,7 @@ func passBall() {
 	go player("ping", table)
 	go player("pong", table)
 
-	// Tip: 一收一发
+	// Tip: 核心逻辑：往channel里放入数据，作为启动信号；从channel读出数据，作为关闭信号
 	table <- new(Ball)
 	time.Sleep(time.Second)
 	<-table
@@ -67,6 +67,7 @@ type sub struct {
 }
 
 func (s *sub) Close() error {
+	// Tip 核心逻辑：两层通知，第一层作为准备关闭的通知，第二层作为关闭结果的返回
 	errc := make(chan error)
 	// Tip 第一步：要关闭时，先传一个chan error过去，通知要关闭了
 	s.closing <- errc
@@ -83,27 +84,6 @@ func (s *sub) loop() {
 			errc <- err
 			close(s.updates)
 			return
-		}
-	}
-}
-
-// 示例4
-func waitTime() {
-	var next time.Time
-	var err error
-	for {
-		var fetchDelay time.Duration
-		if now := time.Now(); next.After(now) {
-			fetchDelay = next.Sub(now)
-		}
-		startFetch := time.After(fetchDelay)
-
-		select {
-		case <-startFetch:
-			// handle here
-			if err != nil {
-				next = time.Now().Add(time.Second)
-			}
 		}
 	}
 }

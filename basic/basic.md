@@ -31,5 +31,5 @@
 ### [sync.Cond](goroutine/sync_cond.go)
 
 1. sync.Cond的核心实现 - 通过一个锁，封装了`notify 通知`的实现，包括了`单个通知`与`广播`这两种方式
-2. sync.Cond与channel的异同 - channel应用于`一收一发`的场景，sync.Cond应用于`多收一发`的场景()
+2. sync.Cond与channel的异同 - channel应用于`一收一发`的场景，sync.Cond应用于`多收一发`的场景
 3. sync.Cond的使用探索 - 多从专业社区收集意见 https://github.com/golang/go/issues/21165

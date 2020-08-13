@@ -21,13 +21,14 @@ func syncCondErr() {
 
 func syncCondExplain() {
 	m := sync.Mutex{}
-	// Tip: 主协程先获得锁
-	m.Lock()
 	c := sync.NewCond(&m)
+
+	// Tip: 主协程先获得锁
+	c.L.Lock()
 	go func() {
 		// Tip: 协程一开始无法获得锁
-		m.Lock()
-		defer m.Unlock()
+		c.L.Lock()
+		defer c.L.Unlock()
 		fmt.Println("3. 该协程获得了锁")
 		time.Sleep(2 * time.Second)
 		// Tip: 通过notify进行广播通知
@@ -40,7 +41,7 @@ func syncCondExplain() {
 	// Tip: 看一下Wait的大致实现，可以了解到，它是先释放锁，直到收到了notify，又进行加锁
 	c.Wait()
 	// Tip: 记得释放锁
-	m.Unlock()
+	c.L.Unlock()
 	fmt.Println("Done")
 }
 

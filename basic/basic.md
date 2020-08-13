@@ -27,3 +27,9 @@
 1. sync.Map的核心实现 - 两个map，一个用于写，另一个用于读，这样的设计思想可以类比`缓存与数据库`
 2. sync.Map的局限性 - 如果写远高于读，dirty->readOnly 这个类似于 `刷数据` 的频率就比较高，不如直接用 `mutex + map` 的组合
 3. sync.Map的设计思想 - 保证高频读的无锁结构、空间换时间
+
+### [sync.Cond](goroutine/sync_cond.go)
+
+1. sync.Cond的核心实现 - 通过一个锁，封装了`notify 通知`的实现，包括了`单个通知`与`广播`这两种方式
+2. sync.Cond与channel的异同 - channel应用于`一收一发`的场景，sync.Cond应用于`多收一发`的场景()
+3. sync.Cond的使用探索 - 多从专业社区收集意见 https://github.com/golang/go/issues/21165

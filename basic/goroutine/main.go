@@ -34,5 +34,12 @@ func main() {
 	/*
 		Tip: sync.Map - 多协程下的map实现
 	*/
-	syncMap()
+	//syncMap()
+
+	/*
+		Tip: sync.Cond - 多协程下的首发通道
+	*/
+	//syncCondErr()
+	//syncCondExplain()
+	syncCond()
 }

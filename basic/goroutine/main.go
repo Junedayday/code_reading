@@ -41,5 +41,10 @@ func main() {
 	*/
 	//syncCondErr()
 	//syncCondExplain()
-	syncCond()
+	//syncCond()
+
+	/*
+		Tip: sync.Pool - 多协程下的对象池
+	*/
+	syncPool()
 }

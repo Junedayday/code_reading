@@ -33,3 +33,10 @@
 1. sync.Cond的核心实现 - 通过一个锁，封装了`notify 通知`的实现，包括了`单个通知`与`广播`这两种方式
 2. sync.Cond与channel的异同 - channel应用于`一收一发`的场景，sync.Cond应用于`多收一发`的场景
 3. sync.Cond的使用探索 - 多从专业社区收集意见 https://github.com/golang/go/issues/21165
+
+### [sync.Pool](goroutine/sync_pool.go)
+
+1. sync.Pool的核心作用 - 读源码，`缓存稍后会频繁使用的对象`+`减轻GC压力`
+2. sync.Pool的Put与Get - Put的顺序为`local private-> local shared`，Get的顺序为 `local private -> local shared -> remote shared`
+3. 思考sync.Pool应用的核心场景 - `高频使用且生命周期短的对象，且初始化始终一致`，如fmt
+4. 探索Go1.13引入`victim`的作用 - 了解`victim cache`的机制

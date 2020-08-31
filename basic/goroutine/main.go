@@ -46,5 +46,13 @@ func main() {
 	/*
 		Tip: sync.Pool - 多协程下的对象池
 	*/
-	syncPool()
+	//syncPool()
+
+	/*
+		Tip: atomic - 原子操作
+	*/
+	//atomicAdd()
+	//dataRaces()
+	//dataRacesWithLock()
+	//dataRacesWithAtomic()
 }

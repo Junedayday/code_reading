@@ -40,3 +40,9 @@
 2. sync.Pool的Put与Get - Put的顺序为`local private-> local shared`，Get的顺序为 `local private -> local shared -> remote shared`
 3. 思考sync.Pool应用的核心场景 - `高频使用且生命周期短的对象，且初始化始终一致`，如fmt
 4. 探索Go1.13引入`victim`的作用 - 了解`victim cache`的机制
+
+### [atomic](goroutine/atomic.go)
+
+1. `atomic` 适用的场景 - 简单、简单、简单！不要讲atomic用在复杂的业务逻辑中
+2. `sync.Value` 与 `mutex` - 学习用两者解决问题的思路
+3. 了解 `data race`机制 - atomic可以有效地减少数据竞争带来的不一致性问题

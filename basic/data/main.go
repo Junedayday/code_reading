@@ -16,4 +16,9 @@ func main() {
 	*/
 	//slice()
 	//sliceAddr()
+
+	/*
+		interface
+	*/
+	//dataInterface()
 }

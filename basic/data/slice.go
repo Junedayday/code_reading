@@ -33,6 +33,7 @@ func slice() {
 	fmt.Println("Slice Range")
 	for i, v := range s {
 		fmt.Println(i, v)
+		fmt.Printf("%p %p\n", &i, &v)
 	}
 }
 
@@ -78,6 +79,7 @@ func sliceAddr() {
 	b := make([]int, 2)
 	copy(b, s)
 	fmt.Printf("%p %p\n", &s, &b)
+	fmt.Println(unsafe.Pointer(&b[0]))
 
 	fmt.Println("Part 3")
 	// Tip: sNil的array指向nil，而sEmpty的array指向一个内存地址

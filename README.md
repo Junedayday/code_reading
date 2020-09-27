@@ -3,7 +3,8 @@
 Start Our Travel for Go Code Reading
 
 - 面试知识点汇总
-    - [go基础](basic/basic.md)
+    - [goroutine](basic/goroutine.md)
+    - [data struct](basic/data_struct.md)
 - [Sort](sort/sort.go)
 - [HTTP](http/server.go)
 - gRPC

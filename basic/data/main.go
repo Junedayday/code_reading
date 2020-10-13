@@ -21,4 +21,11 @@ func main() {
 		interface
 	*/
 	//dataInterface()
+
+	/*
+		embedded
+	*/
+	//embedded()
+	//overwrite()
+	//pointerAndStruct()
 }

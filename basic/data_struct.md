@@ -24,3 +24,9 @@
 1. interface的两种类型 - `数据结构的interface`，侧重于类型；`面向对象中接口定义的interface`，侧重于方法的声明
 2. 了解interface的底层定义 - `eface`和`iface`，都分为两个部分：`类型`与`数据`
 3. `iface`底层对类型匹配进行了优化 - `map`+`mutex`组合
+
+### [embedded](data/embedded.go)
+
+1. `embedded`的核心思想 - 面向对象中的组合思想，主要体现出了代码复用
+2. 项目实战中，常见用到embedded的场景 - 结构体之间存在大量的复用的逻辑，抽象出一个`基类`来作为`embedded`
+3. `interface`的设计原则 - 方法尽量少，通过组合来实现复杂的`interface`

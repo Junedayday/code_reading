@@ -8,6 +8,14 @@ type Dog interface {
 	Hi()
 }
 
+type Dog1 struct{}
+
+func (d Dog1) Hi() {}
+
+type Dog2 struct{}
+
+func (d Dog2) Hi() {}
+
 /*
 	查看汇编，了解调用:
 1. go build -gcflags '-l' -o if main.go interface.go
@@ -35,6 +43,13 @@ func dataInterface() {
 	// Tip: 类型定义，除非是100%确定成功，否则尽量用两个参数，否则会导致panic
 	v, ok := i.(string)
 	fmt.Printf(v, ok)
+
+	var d1 Dog1
+	var d2 Dog2
+	var dList = []Dog{d1, d2}
+	for _, v := range dList {
+		v.Hi()
+	}
 }
 
 /*

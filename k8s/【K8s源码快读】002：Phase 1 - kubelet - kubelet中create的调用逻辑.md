@@ -1,6 +1,10 @@
-# kubelet - create的代码逻辑
+# 【K8s源码快读】002：Phase 1 - kubelet - kubelet中create的调用逻辑
 
-我们的目标是查看`kubectl create -f nginx_pod.yaml` 这个命令
+## 聚焦目标
+
+我们的目标是查看`kubectl create -f nginx_pod.yaml` 这个命令是怎么运行的。
+
+
 
 ## 目录
 
@@ -8,7 +12,7 @@
 
 [args与command的匹配](#match)
 
-[Kubectl命令的初始化](#command)
+[kubectl命令的初始化](#command)
 
 [create子命令查看](#create)
 
@@ -361,7 +365,7 @@ func (o *CreateOptions) RunCreate(f cmdutil.Factory, cmd *cobra.Command) error {
 	count := 0
   // 调用visit函数，创建资源
 	err = r.Visit(func(info *resource.Info, err error) error {
-
+		// 打印结果 xxxx created
 		return o.PrintObj(info.Object)
 	})
 	return nil

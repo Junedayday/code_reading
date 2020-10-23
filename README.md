@@ -16,7 +16,3 @@ Start Our Travel for Go Code Reading
 ## 实践
 
 - [Golang的就业要求](doc/job.md)
-
-## 我的知识星球 - 免费
-
-![欢迎加入我的知识星球](img/knowledge-star.img)

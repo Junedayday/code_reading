@@ -1,4 +1,4 @@
-# 【K8s源码快读】002：Phase 1 - kubelet - kubelet中create的调用逻辑
+# 【K8s源码品读】002：Phase 1 - kubectl - create的调用逻辑
 
 ## 聚焦目标
 
@@ -8,15 +8,15 @@
 
 ## 目录
 
-[main函数入口](#main)
+1. [main函数入口](#main)
 
-[args与command的匹配](#match)
+2. [传入参数与子命令的匹配](#match)
 
-[kubectl命令的初始化](#command)
+3. [kubectl命令的初始化](#command)
 
-[create子命令查看](#create)
+4. [查看create子命令](#create)
 
-[runCreate的创建逻辑](#runCreate)
+5. [runCreate的创建逻辑](#runCreate)
 
 
 

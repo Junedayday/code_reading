@@ -1,0 +1,154 @@
+# 【K8s源码品读】007：Phase 1 - kube-apiserver - Pod数据的保存
+
+## 聚焦目标
+
+理解Pod发送到`kube-apiserver`后是怎么处理的
+
+
+
+## 目录
+
+1. [RESTCreateStrategy创建的预处理](#RESTCreateStrategy)
+2. [REST Pod数据的存储](#Storage)
+3. [存储的底层实现](#storage-implement)
+4. [kube-apiserver第一阶段源码阅读总结](#summary)
+
+
+
+## RESTCreateStrategy
+
+```go
+// podStrategy 是封装了 Pod 的各类动作，这里我们先关注create这个操作
+type podStrategy struct {
+	runtime.ObjectTyper
+	names.NameGenerator
+}
+
+// podStrategy 的接口
+type RESTCreateStrategy interface {
+	runtime.ObjectTyper
+	names.NameGenerator
+  // 是否属于当前的 namespace
+	NamespaceScoped() bool
+  // 准备创建前的检查
+	PrepareForCreate(ctx context.Context, obj runtime.Object)
+  // 验证资源对象
+	Validate(ctx context.Context, obj runtime.Object) field.ErrorList
+  // 规范化
+	Canonicalize(obj runtime.Object)
+}
+
+// 完成了检查，我们就要保存数据了
+```
+
+
+
+## Storage
+
+```go
+// PodStorage 是 Pod 存储的实现，里面包含了多个存储的定义
+type PodStorage struct {
+  // REST implements a RESTStorage for pods
+	Pod                 *REST
+  // BindingREST implements the REST endpoint for binding pods to nodes when etcd is in use.
+	Binding             *BindingREST
+  // LegacyBindingREST implements the REST endpoint for binding pods to nodes when etcd is in use.
+	LegacyBinding       *LegacyBindingREST
+	Eviction            *EvictionREST
+  // StatusREST implements the REST endpoint for changing the status of a pod.
+	Status              *StatusREST
+  // EphemeralContainersREST implements the REST endpoint for adding EphemeralContainers
+	EphemeralContainers *EphemeralContainersREST
+	Log                 *podrest.LogREST
+	Proxy               *podrest.ProxyREST
+	Exec                *podrest.ExecREST
+	Attach              *podrest.AttachREST
+	PortForward         *podrest.PortForwardREST
+}
+
+/*
+从上一节的map关系中，保存在REST中
+restStorageMap := map[string]rest.Storage{
+		"pods":             podStorage.Pod,
+}
+*/
+type REST struct {
+	*genericregistry.Store
+	proxyTransport http.RoundTripper
+}
+
+// Store是一个通用的数据结构
+type Store struct {
+	// Storage定义
+	Storage DryRunnableStorage
+}
+
+// DryRunnableStorage中的Storage是一个Interface
+type DryRunnableStorage struct {
+	Storage storage.Interface
+	Codec   runtime.Codec
+}
+
+func (s *DryRunnableStorage) Create(ctx context.Context, key string, obj, out runtime.Object, ttl uint64, dryRun bool) error {
+	if dryRun {
+		if err := s.Storage.Get(ctx, key, storage.GetOptions{}, out); err == nil {
+			return storage.NewKeyExistsError(key, 0)
+		}
+		return s.copyInto(obj, out)
+	}
+  // 这里，就是Create的真正调用
+	return s.Storage.Create(ctx, key, obj, out, ttl)
+}
+```
+
+
+
+## Storage Implement
+
+```go
+// Storage Interface 的定义，包括基本的增删改查，以及watch等等进阶操作
+type Interface interface {
+	Versioner() Versioner
+	Create(ctx context.Context, key string, obj, out runtime.Object, ttl uint64) error
+	Delete(ctx context.Context, key string, out runtime.Object, preconditions *Preconditions, validateDeletion ValidateObjectFunc) error
+	Watch(ctx context.Context, key string, opts ListOptions) (watch.Interface, error)
+	WatchList(ctx context.Context, key string, opts ListOptions) (watch.Interface, error)
+	Get(ctx context.Context, key string, opts GetOptions, objPtr runtime.Object) error
+	GetToList(ctx context.Context, key string, opts ListOptions, listObj runtime.Object) error
+	List(ctx context.Context, key string, opts ListOptions, listObj runtime.Object) error
+	GuaranteedUpdate(
+		ctx context.Context, key string, ptrToType runtime.Object, ignoreNotFound bool,
+		precondtions *Preconditions, tryUpdate UpdateFunc, suggestion ...runtime.Object) error
+	Count(key string) (int64, error)
+}
+
+func NewRawStorage(config *storagebackend.Config) (storage.Interface, factory.DestroyFunc, error) {
+	return factory.Create(*config)
+}
+
+func Create(c storagebackend.Config) (storage.Interface, DestroyFunc, error) {
+	switch c.Type {
+  // 已经不支持etcd2
+	case "etcd2":
+		return nil, nil, fmt.Errorf("%v is no longer a supported storage backend", c.Type)
+  // 默认为etcd3版本
+	case storagebackend.StorageTypeUnset, storagebackend.StorageTypeETCD3:
+		return newETCD3Storage(c)
+	default:
+		return nil, nil, fmt.Errorf("unknown storage type: %s", c.Type)
+	}
+}
+```
+
+
+
+## Summary
+
+我们对第一阶段学习kube-apiserver的知识点进行总结：
+
+1. `kube-apiserver` 包含三个apiserver`APIExtensionsServer`、`KubeAPIServer`和`AggregatorServer`
+   1. 三个APIServer底层均依赖通用的`GenericServer`，使用`go-restful`对外提供RESTful风格的API服务
+2. `kube-apiserver` 对请求进行 `Authentication`、`Authorization`和`Admission`三层验证
+3. 完成验证后，请求会根据路由规则，触发到对应资源的handler，主要包括数据的`预处理`和`保存`
+4. `kube-apiserver` 的底层存储为etcd v3，它被抽象为一种RESTStorage，使请求和存储操作一一对应
+

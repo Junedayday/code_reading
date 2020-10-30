@@ -13,12 +13,15 @@
 2. [kubectl中的Visitor](#visitor)
 
 3. [Visitor的链式处理](#chained)
-   1. [VisitorList](#VisitorList)
-   2. [EagerVisitorList](#EagerVisitorList)
-   3. [DecoratedVisitor](#DecoratedVisitor)
-   4. [ContinueOnErrorVisitor](#ContinueOnErrorVisitor)
-   5. [FlattenListVisitor](#FlattenListVisitor)
-   6. [FilteredVisitor](#FilteredVisitor)
+   1. 多个对象聚合为一个对象
+      1. [VisitorList](#VisitorList)
+      2. [EagerVisitorList ](#EagerVisitorList)
+   2. 多个方法聚合为一个方法
+      1. [DecoratedVisitor](#DecoratedVisitor)
+      2. [ContinueOnErrorVisitor](#ContinueOnErrorVisitor)
+   3. 将对象抽象为多个底层对象，逐个调用方法
+      1. [FlattenListVisitor](#FlattenListVisitor)
+      2. [FilteredVisitor](#FilteredVisitor)
 
 4. [Visitor的各类实现](#implements)
    1. [StreamVisitor](#StreamVisitor)

@@ -1,8 +1,8 @@
-# 【K8s源码品读】009：Phase 1 - kube-scheduler - Informer的机制
+# 【K8s源码品读】009：Phase 1 - kube-scheduler - Informer监听资源变化
 
 ## 聚焦目标
 
-理解kube-scheduler启动的流程
+了解`Informer`是如何从kube-apiserver监听资源变化的情况
 
 
 
@@ -11,6 +11,8 @@
 1. [什么是Informer](#informer)
 2. [Shared Informer的实现](#Shared Informer)
 3. [PodInformer的背后的实现](#PodInformer)
+4. [聚焦Reflect结构](#Reflect)
+5. [本节小节](#Summary)
 
 
 
@@ -190,6 +192,16 @@ func (c *pods) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interf
 
 // 在上面，我们看到了异步运行Informer的代码 go informer.Run(stopCh)，我们看看是怎么run的
 func (s *sharedIndexInformer) Run(stopCh <-chan struct{}) {
+  // 这里有个 DeltaFIFO 的对象，
+  fifo := NewDeltaFIFOWithOptions(DeltaFIFOOptions{
+		KnownObjects:          s.indexer,
+		EmitDeltaTypeReplaced: true,
+	})
+	// 传入这个fifo到cfg
+	cfg := &Config{
+		Queue:            fifo,
+		...
+	}
 	// 新建controller
 	func() {
 		s.startedLock.Lock()
@@ -223,11 +235,98 @@ func (c *controller) Run(stopCh <-chan struct{}) {
 	c.reflectorMutex.Unlock()
 
 	var wg wait.Group
-
+  // 生产，往Queue里放数据
 	wg.StartWithChannel(stopCh, r.Run)
-
+  // 消费，从Queue消费数据
 	wait.Until(c.processLoop, time.Second, stopCh)
 	wg.Wait()
 }
 ```
 
+
+
+## Reflect
+
+```go
+// 我们再回头看看这个Reflect结构
+r := NewReflector(
+  	// ListerWatcher 我们已经有了解，就是通过client监听kube-apiserver暴露出来的Resource
+		c.config.ListerWatcher,
+		c.config.ObjectType,
+  	// Queue 是我们前文看到的一个 DeltaFIFOQueue，认为这是一个先进先出的队列
+		c.config.Queue,
+		c.config.FullResyncPeriod,
+)
+
+func (r *Reflector) Run(stopCh <-chan struct{}) {
+	klog.V(2).Infof("Starting reflector %s (%s) from %s", r.expectedTypeName, r.resyncPeriod, r.name)
+	wait.BackoffUntil(func() {
+    // 调用了ListAndWatch
+		if err := r.ListAndWatch(stopCh); err != nil {
+			r.watchErrorHandler(r, err)
+		}
+	}, r.backoffManager, true, stopCh)
+	klog.V(2).Infof("Stopping reflector %s (%s) from %s", r.expectedTypeName, r.resyncPeriod, r.name)
+}
+
+func (r *Reflector) ListAndWatch(stopCh <-chan struct{}) error {
+		// watchHandler顾名思义，就是Watch到对应的事件，调用对应的Handler
+		if err := r.watchHandler(start, w, &resourceVersion, resyncerrc, stopCh); err != nil {
+			if err != errorStopRequested {
+				switch {
+				case isExpiredError(err):
+					klog.V(4).Infof("%s: watch of %v closed with: %v", r.name, r.expectedTypeName, err)
+				default:
+					klog.Warningf("%s: watch of %v ended with: %v", r.name, r.expectedTypeName, err)
+				}
+			}
+			return nil
+		}
+	}
+}
+
+func (r *Reflector) watchHandler() error {
+loop:
+	for {
+    // 一个经典的GO语言select监听多channel的模式
+		select {
+    // 整体的step channel
+		case <-stopCh:
+			return errorStopRequested
+    // 错误相关的error channel
+		case err := <-errc:
+			return err
+    // 接收事件event的channel
+		case event, ok := <-w.ResultChan():
+      // channel被关闭，退出loop
+			if !ok {
+				break loop
+			}
+      
+			// 一系列的资源验证代码跳过
+      
+			switch event.Type {
+      // 增删改三种Event，分别对应到去store，即DeltaFIFO中，操作object
+			case watch.Added:
+				err := r.store.Add(event.Object)
+			case watch.Modified:
+				err := r.store.Update(event.Object)
+			case watch.Deleted:
+				err := r.store.Delete(event.Object)
+			case watch.Bookmark:
+			default:
+				utilruntime.HandleError(fmt.Errorf("%s: unable to understand watch event %#v", r.name, event))
+			}
+		}
+	}
+	return nil
+}
+```
+
+
+
+## Summary
+
+1. `Informer` 依赖于 `Reflector` 模块，它有个组件为 xxxInformer，如 `podInformer` 
+2. 具体资源的 `Informer` 包含了一个连接到``kube-apiserver`的`client`，通过`List`和`Watch`接口查询资源变更情况
+3. 检测到资源发生变化后，通过`Controller` 将数据放入队列`DeltaFIFOQueue`里，生产阶段完成

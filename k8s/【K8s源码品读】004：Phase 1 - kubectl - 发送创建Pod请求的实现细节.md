@@ -11,7 +11,7 @@
 1. [向kube-apiserver发送请求](#send-request)
 2. [RESTful客户端是怎么创建的](#RESTful-client)
 3. [Object是怎么生成的](#object)
-4. [发送到kube-apiserver](#post)
+4. [发送post请求](#post)
 5. [kubectl第一阶段源码阅读总结](#summary)
 
 

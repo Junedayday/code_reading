@@ -2,7 +2,7 @@
 
 ## 聚焦目标
 
-理解Pod发送到`kube-apiserver`后是怎么处理的
+理解Pod发送到`kube-apiserver`后是怎么保存的
 
 
 

@@ -9,7 +9,7 @@
 ## 目录
 
 1. [什么是Informer](#informer)
-2. [Shared Informer的实现](#Shared Informer)
+2. [Shared Informer的实现](#Shared-Informer)
 3. [PodInformer的背后的实现](#PodInformer)
 4. [聚焦Reflect结构](#Reflect)
 5. [本节小节](#Summary)

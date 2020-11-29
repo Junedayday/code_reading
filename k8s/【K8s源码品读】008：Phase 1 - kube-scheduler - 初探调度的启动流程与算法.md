@@ -69,8 +69,8 @@ func Run(ctx context.Context, cc *schedulerserverconfig.CompletedConfig, sched *
 }
 
 /*
-到这里，我们已经接触了kube-apiserver的2个核心概念：
-1. scheduler：正如程序名kube-apiserver，这个进程的核心作用是进行调度，会涉及到多种调度策略
+到这里，我们已经接触了kube-scheduler的2个核心概念：
+1. scheduler：正如程序名kube-scheduler，这个进程的核心作用是进行调度，会涉及到多种调度策略
 2. Informer：k8s中有各种类型的资源，包括自定义的。而Informer的实现就将调度和资源结合了起来
 */
 ```

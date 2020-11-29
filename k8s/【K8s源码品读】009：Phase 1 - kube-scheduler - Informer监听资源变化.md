@@ -328,5 +328,5 @@ loop:
 ## Summary
 
 1. `Informer` 依赖于 `Reflector` 模块，它有个组件为 xxxInformer，如 `podInformer` 
-2. 具体资源的 `Informer` 包含了一个连接到``kube-apiserver`的`client`，通过`List`和`Watch`接口查询资源变更情况
+2. 具体资源的 `Informer` 包含了一个连接到`kube-apiserver`的`client`，通过`List`和`Watch`接口查询资源变更情况
 3. 检测到资源发生变化后，通过`Controller` 将数据放入队列`DeltaFIFOQueue`里，生产阶段完成

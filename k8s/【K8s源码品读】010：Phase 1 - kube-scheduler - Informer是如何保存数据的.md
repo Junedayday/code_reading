@@ -110,17 +110,18 @@ func (s *sharedIndexInformer) HandleDeltas(obj interface{}) error {
 
 ```go
 // 我们去看看Index是怎么创建的
-type Indexers map[string]IndexFunc
-
-func NewSharedInformer(lw ListerWatcher, exampleObject runtime.Object, defaultEventHandlerResyncPeriod time.Duration) SharedInformer {
-  // 这里传入的是一个空的map
-	return NewSharedIndexInformer(lw, exampleObject, defaultEventHandlerResyncPeriod, Indexers{})
-}
-
 func NewSharedIndexInformer(lw ListerWatcher, exampleObject runtime.Object, defaultEventHandlerResyncPeriod time.Duration, indexers Indexers) SharedIndexInformer {
+	realClock := &clock.RealClock{}
 	sharedIndexInformer := &sharedIndexInformer{
-    // 这里对空的进行了初始化
+		processor:                       &sharedProcessor{clock: realClock},
+    // indexer 的初始化
 		indexer:                         NewIndexer(DeletionHandlingMetaNamespaceKeyFunc, indexers),
+		listerWatcher:                   lw,
+		objectType:                      exampleObject,
+		resyncCheckPeriod:               defaultEventHandlerResyncPeriod,
+		defaultEventHandlerResyncPeriod: defaultEventHandlerResyncPeriod,
+		cacheMutationDetector:           NewCacheMutationDetector(fmt.Sprintf("%T", exampleObject)),
+		clock:                           realClock,
 	}
 	return sharedIndexInformer
 }
@@ -198,7 +199,7 @@ func (p *processorListener) add(notification interface{}) {
 ## Summary
 
 1. `Informer` 依赖于 `Reflector` 模块，它有个组件为 xxxInformer，如 `podInformer` 
-2. 具体资源的 `Informer` 包含了一个连接到``kube-apiserver`的`client`，通过`List`和`Watch`接口查询资源变更情况
+2. 具体资源的 `Informer` 包含了一个连接到`kube-apiserver`的`client`，通过`List`和`Watch`接口查询资源变更情况
 3. 检测到资源发生变化后，通过`Controller` 将数据放入队列`DeltaFIFOQueue`里，生产阶段完成
 4. 在`DeltaFIFOQueue`的另一端，有消费者在不停地处理资源变化的事件，处理逻辑主要分2步
    1. 将数据保存到本地存储Indexer，它的底层实现是一个并发安全的threadSafeMap

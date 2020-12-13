@@ -18,3 +18,7 @@ Start Our Travel for Go Code Reading
 ## 实践
 
 - [Golang的就业要求](doc/job.md)
+
+## 我的公众号
+
+![我的公众号二维码](img/qrcode_for_golangcoding.jpg)

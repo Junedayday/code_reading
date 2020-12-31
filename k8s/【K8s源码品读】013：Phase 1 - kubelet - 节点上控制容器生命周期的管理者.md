@@ -10,7 +10,7 @@
 
 1. [运行的主函数](#Run)
 2. [运行kubelet](#RunKubelet)
-3. [核心数据解耦股Kubelet](#Kubelet)
+3. [核心数据管理Kubelet](#Kubelet)
 4. [同步循环](#syncLoop)
 5. [处理pod的同步工作](#handler)
 6. [总结](#Summary)

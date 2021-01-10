@@ -1,0 +1,328 @@
+# Go编程模式
+
+本PDF来源于GOPHER 2020年大会陈皓的分享，原PPT的[链接](https://www2.slideshare.net/haoel/go-programming-patterns?from_action=save)可能并不方便获取，所以我下载了一份到git仓，方便大家阅读。[PDF链接](https://github.com/Junedayday/code_reading/tree/master/doc/Go_Programming_Patterns.pdf)
+
+接下来，我将结合自己的实际项目经历，与大家一起细品这份文档。
+
+
+
+## 目录
+
+- [基础编码](#Basic Coding)
+  - [Slice的底层实现](#Slice Internal)
+  - [深度对比](#Deep Comparison)
+  - [函数传参VS对象方法](#Function vs Receiver)
+  - [面向接口编程](#Interface Patterns)
+- Error Handling
+- Delegation/Embed
+- Functional Option
+- Map/Reduce/Filter
+- Go Generatio
+- Decoration
+- Kubernetes Visitor
+- Pipeline
+
+
+
+## Basic Coding
+
+### Slice Internal
+
+关于Slice的实现，我之前有[一讲](https://github.com/Junedayday/code_reading/blob/master/basic/data_struct.md#slice)专门分析过底层实现。考虑到很多朋友没有细看，那我就再简单地讲一下。
+
+```go
+type slice struct {
+  array unsafe.Pointer // Slice底层保存数据的指针
+  len int // 当前使用的长度
+	cap int // 分配的长度
+}
+```
+
+掌握Slice的底层实现，能让你真正理解一些看似“奇怪的”现象：
+
+```go
+func main(){
+    foo := make([]int, 5)
+    foo[3] = 42
+    foo[4] = 100
+    
+    bar := foo[1:4]
+    bar[1] = 99
+    
+    fmt.Println(foo)
+    // [0 0 99 42 100]
+    fmt.Println(bar)
+    // [0 99 42]
+}
+```
+
+> Tip: bar和foo是共享slice结构体底层的array的，所以修改了bar数组，foo也会变化
+
+```go
+func main(){
+    a := make([]int, 32)
+    b := a[1:16]
+    
+    a = append(a, 1)
+    a[2] = 42
+  
+    fmt.Println(a,b)
+    // [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+}
+```
+
+> Tip: a和b原来是共享array的，但在a = append(a, 1)后发生了扩容，a和b指向的array发生了变化
+
+```go
+ func main(){
+    path := []byte("AAAA/BBBBBBBBB")
+    sepIndex := bytes.IndexByte(path,'/')
+    dir1 := path[:sepIndex]
+    dir2 := path[sepIndex+1:]
+    fmt.Println(cap(dir1),cap(dir2))
+    // 14 9
+    fmt.Println("dir1 =>",string(dir1))
+    // dir1 => AAAA
+    fmt.Println("dir2 =>",string(dir2))
+    // dir2 => BBBBBBBBB
+    
+    dir1 = append(dir1,"suffix"...)
+    fmt.Println("dir1 =>",string(dir1))
+    // dir1 => AAAAsuffix
+    fmt.Println("dir2 =>",string(dir2))
+    // dir2 => uffixBBBB
+}
+```
+
+> Tip: 核心点在于理解dir1和dir2的cap分别是14和9。由于dir1的当前len=4，append的长度=6，4+6<14，所以不会发生扩容
+
+
+
+### Deep Comparison
+
+我们先看一下示例，`data`结构体中四个注释为`not comparable`表示无法直接用 == 符号对比
+
+```go
+type data struct {
+	num    int               // ok
+	checks [10]func() bool   // not comparable
+	doit   func() bool       // not comparable
+	m      map[string]string // not comparable
+	bytes  []byte            // not comparable
+}
+
+func main() {
+	v1 := data{}
+	v2 := data{}
+	fmt.Println("v1 == v2:", reflect.DeepEqual(v1, v2))
+	// prints: v1 == v2: true
+
+	m1 := map[string]string{"one": "a", "two": "b"}
+	m2 := map[string]string{"two": "b", "one": "a"}
+	fmt.Println("m1 == m2:", reflect.DeepEqual(m1, m2))
+	// prints: m1 == m2: true
+
+	s1 := []int{1, 2, 3}
+	s2 := []int{1, 2, 3}
+	fmt.Println("s1 == s2:", reflect.DeepEqual(s1, s2))
+	// prints: s1 == s2: true
+}
+```
+
+> Tip： 示例比较复杂，其实要表达的内容比较简单：
+>
+> 函数、map、切片（不包括数组）以及它们的复合结构（如函数的数组），无法直接对比，只能用 reflect.DeepEqual
+
+
+
+### Function vs Receiver
+
+```go
+type Person struct {
+	Name   string
+	Sexual string
+	Age    int
+}
+
+func PrintPerson(p *Person) { fmt.Printf("Name=%s, Sexual=%s, Age=%d\n", p.Name, p.Sexual, p.Age) }
+func (p *Person) Print()    { fmt.Printf("Name=%s, Sexual=%s, Age=%d\n", p.Name, p.Sexual, p.Age) }
+
+func main() {
+	var p = Person{
+		Name: "Hao Chen", Sexual: "Male", Age: 44,
+	}
+
+	PrintPerson(&p)
+	// Name=Hao Chen, Sexual=Male, Age=44
+	p.Print()
+	// Name=Hao Chen, Sexual=Male, Age=44
+}
+```
+
+> Tip: 示例比较简单，但其中蕴含的意义非常大，如对Person这个对象的抽象、简化代码等。
+>
+> 另外值得一提的是，Go编译器会根据方法 `func (p *Person) Print()` 的定义，将 `p.Print()`中的p从`Person`转换为`*Person`。
+
+
+
+### Interface Patterns
+
+这个模块非常重要，希望大家倒一杯水，细细品尝。
+
+示例是一个很简单的interface实现，用来打印接口，我们看看代码。
+
+```go
+type Country struct {
+	Name string
+}
+
+type City struct {
+	Name string
+}
+
+type Printable interface {
+	PrintStr()
+}
+
+func (c Country) PrintStr() {
+	fmt.Println(c.Name)
+}
+
+func (c City) PrintStr() {
+	fmt.Println(c.Name)
+}
+
+func main() {
+	c1 := Country{"China"}
+	c2 := City{"Beijing"}
+
+	var cList = []Printable{c1, c2}
+	for _, v := range cList {
+		v.PrintStr()
+	}
+}
+```
+
+那么，这时问题来了，如果我要实现N个`Printable`，就要定义N个strcut+N个`PrintStr()`方法。
+
+前者的工作不能避免，而后者能否简化？那么示例来了
+
+```go
+type WithName struct {
+	Name string
+}
+
+type Country struct {
+	WithName
+}
+
+type City struct {
+	WithName
+}
+
+type Printable interface {
+	PrintStr()
+}
+
+func (c WithName) PrintStr() {
+	fmt.Println(c.Name)
+}
+
+func main() {
+	c1 := Country{WithName{"China"}}
+	c2 := City{WithName{"Beijing"}}
+
+	var cList = []Printable{c1, c2}
+	for _, v := range cList {
+		v.PrintStr()
+	}
+}
+```
+
+> Tip: 核心就是用 embedded 的特性来删除冗余的代码。当然，代价是初始化会稍微麻烦点。
+
+---
+
+
+
+这时候，陈皓又给出了一个例子，即打印的内容会根据具体的实现不同时，无法直接用`WithName`来实现
+
+```go
+type Country struct {
+	Name string
+}
+
+type City struct {
+	Name string
+}
+
+type Printable interface {
+	PrintStr()
+}
+
+func (c Country) PrintStr() {
+	fmt.Println("Country:", c.Name)
+}
+
+func (c City) PrintStr() {
+	fmt.Println("City:", c.Name)
+}
+
+func main() {
+	c1 := Country{"China"}
+	c2 := City{"Beijing"}
+
+	var cList = []Printable{c1, c2}
+	for _, v := range cList {
+		v.PrintStr()
+	}
+}
+```
+
+首先，我们要明确是否有必要优化。如果只有示例中这么几行代码，我们完全没必要改写。那如果系统真复杂到一定程度，我们该怎么办呢？
+
+这是一个很发散性的问题，我这里给出一个个人比较常用的解决方案，作为参考。
+
+```go
+type WithTypeName struct {
+	Type string
+	Name string
+}
+
+type Country struct {
+	WithTypeName
+}
+
+func NewCountry(name string) Printable {
+	return Country{WithTypeName{"Country", name}}
+}
+
+type City struct {
+	WithTypeName
+}
+
+func NewCity(name string) Printable {
+	return City{WithTypeName{"City", name}}
+}
+
+type Printable interface {
+	PrintStr()
+}
+
+func (c WithTypeName) PrintStr() {
+	fmt.Printf("%s:%s\n", c.Type, c.Name)
+}
+
+func main() {
+	c1 := NewCountry("China")
+	c2 := NewCity("Beijing")
+
+	var cList = []Printable{c1, c2}
+	for _, v := range cList {
+		v.PrintStr()
+	}
+}
+```
+
+> Tip： 没错，这就是比较常见的工厂模式，它的好处有很多，比如可以将具体的实现`Country`和`City`私有化，不对外暴露实现细节。今天不做细谈。
+

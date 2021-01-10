@@ -8,11 +8,11 @@
 
 ## 目录
 
-- [基础编码](#Basic Coding)
-  - [Slice的底层实现](#Slice Internal)
-  - [深度对比](#Deep Comparison)
-  - [函数传参VS对象方法](#Function vs Receiver)
-  - [面向接口编程](#Interface Patterns)
+- [基础编码](#Basic-Coding)
+  - [Slice的底层实现](#Slice-Internal)
+  - [深度对比](#Deep-Comparison)
+  - [函数传参VS对象方法](#Function-vs-Receiver)
+  - [面向接口编程](#Interface-Patterns)
 - Error Handling
 - Delegation/Embed
 - Functional Option

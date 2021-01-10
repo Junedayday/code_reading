@@ -3,7 +3,7 @@
 Start Our Travel for Go Code Reading
 
 - 好文共读 ==从大师的思想中汲取营养==
-    - [Go编程模式 - From 陈皓](reading/go_programming_patterns.md)
+    - [Go编程模式 - From 陈皓](reading/go_programming_patterns/go_programming_patterns.md)
 - 开源项目 ==剖析经典项目，提升实战能力==
     - [Kubernetes源码阅读第一阶段](https://github.com/Junedayday/code_reading/tree/master/k8s)
     - gRPC

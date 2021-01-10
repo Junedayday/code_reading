@@ -32,8 +32,8 @@
 
 ```go
 type slice struct {
-  array unsafe.Pointer // Slice底层保存数据的指针
-  len int // 当前使用的长度
+	array unsafe.Pointer // Slice底层保存数据的指针
+	len int // 当前使用的长度
 	cap int // 分配的长度
 }
 ```

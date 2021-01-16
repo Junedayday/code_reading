@@ -7,7 +7,8 @@
 ## 目录
 
 - 基础编码
-  - [上半部分](./1-基础编码上.md))
+  - [上半部分](./1-基础编码上.md)
+  - [下半部分](./2-基础编码下.md)
 - Error Handling
 - Delegation/Embed
 - Functional Option

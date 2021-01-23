@@ -10,7 +10,7 @@
   - [上半部分](./1-基础编码上.md)
   - [下半部分](./2-基础编码下.md)
 - [继承与嵌入](./3-继承与嵌入.md)
-- Error Handling
+- [Error Handling](./4-错误处理.md)
 - Functional Option
 - Map/Reduce/Filter
 - Go Generatio

@@ -11,7 +11,7 @@
   - [下半部分](./2-基础编码下.md)
 - [继承与嵌入](./3-继承与嵌入.md)
 - [错误处理](./4-错误处理.md)
-- Functional Option
+- [函数式选项](./5-函数式选项.md)
 - Map/Reduce/Filter
 - Go Generatio
 - Decoration

@@ -1,0 +1,66 @@
+.reward-container {
+  margin: $post-card-margin;
+  padding: 1em 0;
+  text-align: center;
+
+  button {
+    background: transparent;
+    border: 2px solid $sidebar-highlight;
+    border-radius: 2px;
+    color: $sidebar-highlight;
+    cursor: pointer;
+    line-height: 2;
+    outline: 0;
+    padding: 0 15px;
+    transition: all $transition-ease;
+    vertical-align: text-top;
+
+    &:hover {
+      background: $sidebar-highlight;
+      border: 2px solid transparent;
+      color: white;
+    }
+  }
+}
+
+.post-reward {
+  display: none;
+  padding-top: 20px;
+
+  &.active {
+    display: block;
+  }
+
+  div {
+    display: inline-block;
+
+    span {
+      display: block;
+    }
+
+    if (hexo-config('reward_settings.animation')) {
+      &:hover span {
+        animation: next-roll .1s infinite linear;
+        // The animation may affect :hover of img in dark mode
+        pointer-events: none;
+      }
+    }
+  }
+
+  img {
+    display: inline-block;
+    margin: .8em 2em 0 2em;
+    max-width: 100%;
+    width: 180px;
+  }
+}
+
+@keyframes next-roll {
+  from {
+    transform: rotateZ(30deg);
+  }
+
+  to {
+    transform: rotateZ(-30deg);
+  }
+}

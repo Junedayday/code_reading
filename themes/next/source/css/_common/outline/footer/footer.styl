@@ -1,0 +1,76 @@
+// Footer Section
+// --------------------------------------------------
+.footer {
+  color: $grey-dark;
+  font-size: $font-size-small;
+  padding: 20px 0;
+
+  &.footer-fixed {
+    bottom: 0;
+    left: 0;
+    position: absolute;
+    right: 0;
+  }
+}
+
+// Flexbox layout makes it possible to reorder the child
+// elements of .footer-inner through the `order` CSS property
+.footer-inner {
+  box-sizing: border-box;
+  text-align: center;
+  flex-column();
+  main-container();
+}
+
+.use-motion {
+  .footer {
+    opacity: 0;
+  }
+}
+
+@keyframes icon-animate {
+  0%, 100% {
+    transform: scale(1);
+  }
+
+  10%, 30% {
+    transform: scale(.9);
+  }
+
+  20%, 40%, 60%, 80% {
+    transform: scale(1.1);
+  }
+
+  50%, 70% {
+    transform: scale(1.1);
+  }
+}
+
+.languages {
+  display: inline-block;
+  font-size: $font-size-large;
+  position: relative;
+
+  .lang-select-label span {
+    margin: 0 .5em;
+  }
+
+  .lang-select {
+    height: 100%;
+    left: 0;
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    width: 100%;
+  }
+}
+
+.with-love {
+  color: unquote(hexo-config('footer.icon.color'));
+  display: inline-block;
+  margin: 0 5px;
+
+  if (hexo-config('footer.icon.animated')) {
+    animation: icon-animate 1.33s ease-in-out infinite;
+  }
+}

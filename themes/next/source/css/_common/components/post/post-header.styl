@@ -1,0 +1,109 @@
+.posts-expand .post-header {
+  font-size: $font-size-large;
+  margin-bottom: 60px;
+  text-align: center;
+}
+
+.posts-expand .post-title {
+  font-size: $font-size-largest;
+  font-weight: normal;
+  margin: initial;
+  word-wrap();
+
+  if (hexo-config('post_edit.enable')) {
+    .post-edit-link {
+      border-bottom: none;
+      color: $grey;
+      display: inline-block;
+      float: right;
+      font-size: $font-size-larger;
+      margin-left: -1.2em;
+      transition: color $transition-ease-in;
+
+      +mobile-small() {
+        margin-left: initial;
+      }
+
+      &:hover {
+        color: $sidebar-highlight;
+      }
+    }
+  }
+}
+
+.posts-expand .post-title-link {
+  border-bottom: none;
+  color: var(--link-color);
+  display: inline-block;
+  position: relative;
+
+  &::before {
+    background: var(--link-color);
+    bottom: 0;
+    content: '';
+    height: 2px;
+    // Fix issue #75
+    left: 0;
+    position: absolute;
+    transform: scaleX(0);
+    transition: transform $transition-ease;
+    width: 100%;
+  }
+
+  &:hover::before {
+    transform: scaleX(1);
+  }
+
+  .fa-external-link-alt {
+    font-size: $font-size-small;
+    margin-left: 5px;
+  }
+}
+
+.post-sticky-flag {
+  display: inline-block;
+  transform: rotate(30deg);
+}
+
+.posts-expand .post-meta-container {
+  color: $grey-dark;
+  font-family: $font-family-posts;
+  font-size: $font-size-smallest;
+  margin-top: 3px;
+
+  .post-description {
+    font-size: $font-size-small;
+    margin-top: 2px;
+  }
+
+  time {
+    border-bottom: 1px dashed $grey-dark;
+    cursor: pointer;
+  }
+}
+
+// Flexbox layout makes it possible to reorder the child
+// elements of .post-meta through the `order` CSS property
+.post-meta {
+  flex-wrap();
+}
+
+// .post-meta-item exists in .post-meta and footer
+.post-meta-item:not(:first-child)::before {
+  content: '|';
+  margin: 0 .5em;
+}
+
+.post-meta-item-icon {
+  margin-right: 3px;
+}
+
+.post-meta-item-text {
+  if (!hexo-config('post_meta.item_text')) {
+    display: none;
+  }
+
+  +tablet-mobile() {
+    display: none;
+  }
+}

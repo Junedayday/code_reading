@@ -1,0 +1,98 @@
+.post-body .tabs {
+  margin-bottom: 20px;
+}
+
+.post-body .tabs, .tabs-comment {
+  padding-top: 10px;
+
+  ul.nav-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0;
+    padding: 0;
+
+    +mobile-smallest() {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    li.tab {
+      border-bottom: 1px solid $grey-lighter;
+      border-left: 1px solid transparent;
+      border-right: 1px solid transparent;
+      border-top: 3px solid transparent;
+      flex-grow: 1;
+      list-style-type: none;
+
+      +mobile-smallest() {
+        border-bottom: 1px solid transparent;
+        border-left: 3px solid transparent;
+        border-right: 1px solid transparent;
+        border-top: 1px solid transparent;
+      }
+
+      border-radius: $tbr $tbr 0 0;
+
+      +mobile-smallest() {
+        border-radius: $tbr;
+      }
+
+      if (hexo-config('tabs.transition.tabs')) {
+        transition: all $transition-ease-out;
+      }
+
+      a {
+        border-bottom: initial;
+        display: block;
+        line-height: 1.8;
+        padding: .25em .75em;
+        text-align: center;
+
+        i {
+          width: (18em / 14);
+        }
+
+        if (hexo-config('tabs.transition.labels')) {
+          transition: all $transition-ease-out;
+        }
+      }
+
+      &.active {
+        border-bottom-color: transparent;
+        border-left-color: $table-border-color;
+        border-right-color: $table-border-color;
+        border-top-color: $orange;
+
+        +mobile-smallest() {
+          border-bottom-color: $table-border-color;
+          border-left-color: $orange;
+          border-right-color: $table-border-color;
+          border-top-color: $table-border-color;
+        }
+
+        a {
+          cursor: default;
+        }
+      }
+    }
+  }
+
+  .tab-content {
+    border: 1px solid $table-border-color;
+    border-top-color: transparent;
+    border-radius: 0 0 $tbr $tbr;
+
+    +mobile-smallest() {
+      border-radius: $tbr;
+      border-top-color: $table-border-color;
+    }
+
+    .tab-pane {
+      padding: 20px 20px 0 20px;
+
+      &:not(.active) {
+        display: none;
+      }
+    }
+  }
+}

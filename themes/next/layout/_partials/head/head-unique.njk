@@ -1,0 +1,21 @@
+{{ open_graph() }}
+
+{# https://github.com/theme-next/hexo-theme-next/issues/866 #}
+{%- set canonical = url | replace(r/index\.html$/, '') %}
+{%- if not config.permalink.endsWith('.html') %}
+  {%- set canonical = canonical | replace(r/\.html$/, '') %}
+{%- endif %}
+<link rel="canonical" href="{{ canonical }}">
+
+{# Exports some front-matter variables to Front-End #}
+<script{{ pjax }} class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: {{ page.sidebar | safedump }},
+    isHome : {{ is_home() }},
+    isPost : {{ is_post() }},
+    lang   : '{{ page.lang }}'
+  };
+</script>
+
+{{- next_inject('head') }}

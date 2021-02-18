@@ -1,0 +1,54 @@
+.rtl {
+  &.post-body {
+    p, a, h1, h2, h3, h4, h5, h6, li, ul, ol {
+      direction: rtl;
+      font-family: UKIJ Ekran;
+    }
+  }
+
+  &.post-title {
+    font-family: UKIJ Ekran;
+  }
+}
+
+.post-button {
+  margin-top: 40px;
+  text-align: center;
+}
+
+.use-motion {
+  if (hexo-config('motion.transition.post_block')) {
+    .post-block, .pagination, .comments {
+      visibility: hidden;
+    }
+  }
+
+  if (hexo-config('motion.transition.post_header')) {
+    .post-header {
+      visibility: hidden;
+    }
+  }
+
+  if (hexo-config('motion.transition.post_body')) {
+    .post-body {
+      visibility: hidden;
+    }
+  }
+
+  if (hexo-config('motion.transition.coll_header')) {
+    .collection-header {
+      visibility: hidden;
+    }
+  }
+}
+
+@import 'post-collapse';
+@import 'post-body';
+@import 'post-gallery';
+@import 'post-header';
+@import 'post-nav';
+@import 'post-footer';
+@import 'post-widgets';
+@import 'post-reward';
+
+@import 'post-followme' if (hexo-config('follow_me'));

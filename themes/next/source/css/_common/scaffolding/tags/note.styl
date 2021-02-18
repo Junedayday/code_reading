@@ -1,0 +1,112 @@
+.post-body .note {
+  $note-icons = hexo-config('note.icons');
+  $note-style = hexo-config('note.style');
+
+  border-radius: $note-border-radius;
+  margin-bottom: 20px;
+  padding: 1em;
+  position: relative;
+
+  if ($note-style == 'simple') {
+    border: 1px solid $gainsboro;
+    border-left-width: 5px;
+  }
+
+  if ($note-style == 'modern') {
+    background: $whitesmoke;
+    border: 1px solid transparent;
+  }
+
+  if ($note-style == 'flat') {
+    background: lighten($gainsboro, 65%);
+    border: initial;
+    border-left: 3px solid $gainsboro;
+  }
+
+  summary {
+    cursor: pointer;
+    outline: 0;
+
+    p {
+      display: inline;
+    }
+  }
+
+  h2, h3, h4, h5, h6 {
+    border-bottom: initial;
+    margin: 0;
+    padding-top: 0;
+  }
+
+  p, ul, ol, table, pre, blockquote, img {
+    &:first-child {
+      margin-top: 0;
+    }
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  if ($note-icons) {
+    &:not(.no-icon) {
+      padding-left: 2.5em;
+
+      &::before {
+        font-size: 1.5em;
+        left: .3em;
+        position: absolute;
+        top: calc(50% - 1em);
+      }
+    }
+  }
+
+  for $type in $note-types {
+    &.{$type} {
+      if ($note-style == 'flat') {
+        background: lookup('$note-bg-' + $type);
+        if (hexo-config('darkmode')) {
+          @media (prefers-color-scheme: dark) {
+            background: mix(lookup('$note-bg-' + $type), $body-bg-color-dark, 10%);
+          }
+        }
+      }
+
+      if ($note-style == 'modern') {
+        background: lookup('$note-modern-bg-' + $type);
+        border-color: lookup('$note-modern-border-' + $type);
+        color: lookup('$note-modern-text-' + $type);
+
+        a, span.exturl {
+          &:not(.btn) {
+            border-bottom-color: lookup('$note-modern-text-' + $type);
+            color: lookup('$note-modern-text-' + $type);
+
+            &:hover {
+              border-bottom-color: lookup('$note-modern-hover-' + $type);
+              color: lookup('$note-modern-hover-' + $type);
+            }
+          }
+        }
+      }
+
+      if ($note-style != 'modern') {
+        border-left-color: lookup('$note-border-' + $type);
+
+        h2, h3, h4, h5, h6 {
+          color: lookup('$note-text-' + $type);
+        }
+      }
+
+      if ($note-icons) {
+        &:not(.no-icon)::before {
+          font-family-icons(lookup('$note-icon-' + $type));
+
+          if ($note-style != 'modern') {
+            color: lookup('$note-text-' + $type);
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+.back-to-top {
+  bottom: $b2t-position-bottom;
+  box-sizing: border-box;
+  color: $b2t-color;
+  padding: 0 6px;
+  transition: bottom $transition-ease;
+  sidebar-toggle();
+
+  if (!hexo-config('back2top.scrollpercent')) {
+    width: 24px;
+  }
+
+  &:hover {
+    color: $sidebar-highlight;
+  }
+
+  &.back-to-top-on {
+    bottom: $b2t-position-bottom-on;
+  }
+}

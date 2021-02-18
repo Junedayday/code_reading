@@ -1,0 +1,51 @@
+$page-number-basic {
+  display: inline-block;
+  margin: -1px 10px 0 10px;
+  padding: 0 10px;
+
+  +mobile() {
+    margin: 0 5px;
+  }
+}
+
+.pagination {
+  border-top: 1px solid $pagination-border;
+  margin: 120px 0 0;
+  text-align: center;
+
+  .prev, .next, .page-number {
+    @extend $page-number-basic;
+    border-bottom: 0;
+    border-top: 1px solid $pagination-link-border;
+    transition: border-color $transition-ease;
+
+    &:hover {
+      border-top-color: $pagination-link-hover-border;
+    }
+  }
+
+  +mobile() {
+    border-top: 0;
+
+    .prev, .next, .page-number {
+      border-bottom: 1px solid $pagination-link-border;
+      border-top: 0;
+
+      &:hover {
+        border-bottom-color: $pagination-link-hover-border;
+      }
+    }
+  }
+
+  .space {
+    @extend $page-number-basic;
+    margin: 0;
+    padding: 0;
+  }
+
+  .page-number.current {
+    background: $pagination-active-bg;
+    border-color: $pagination-active-border;
+    color: $pagination-active-color;
+  }
+}

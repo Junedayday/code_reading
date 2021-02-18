@@ -1,0 +1,43 @@
+// Tags
+// --------------------------------------------------
+hr {
+  height: 2px;
+  margin: 20px 0;
+}
+
+// Components
+// --------------------------------------------------
+.btn {
+  padding: 0 10px;
+}
+
+.headband {
+  display: none;
+}
+
+// Pagination
+// --------------------------------------------------
+.pagination {
+  text-align: left;
+
+  +mobile() {
+    margin: 80px 0 0;
+    text-align: center;
+  }
+}
+
+// Footer
+// --------------------------------------------------
+.footer {
+  background: var(--content-bg-color);
+  color: var(--text-color);
+  padding: 10px 0;
+}
+
+.footer-inner {
+  text-align: left;
+
+  +mobile() {
+    text-align: center;
+  }
+}

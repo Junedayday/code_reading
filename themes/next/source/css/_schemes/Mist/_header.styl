@@ -1,0 +1,56 @@
+// Header
+// --------------------------------------------------
+.header-inner {
+  align-items: center;
+  display: flex;
+  padding: 20px 0;
+
+  +mobile() {
+    display: block;
+    padding: 10px 0;
+  }
+}
+
+.site-meta {
+  line-height: normal;
+
+  .brand {
+    padding: 2px 1px;
+
+    +mobile() {
+      display: block;
+    }
+  }
+
+  .site-title {
+    font-weight: bolder;
+  }
+}
+
+.logo-line {
+  background: var(--brand-color);
+  display: block;
+  height: 2px;
+  margin: 0 auto;
+  width: 75%;
+
+  +mobile() {
+    display: none;
+  }
+}
+
+.use-motion {
+  .logo-line:first-of-type {
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+
+  .logo-line:last-of-type {
+    transform-origin: right;
+    transform: scaleX(0);
+  }
+}
+
+.site-subtitle {
+  display: none;
+}

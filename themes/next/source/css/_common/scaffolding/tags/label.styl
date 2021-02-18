@@ -1,0 +1,10 @@
+.post-body .label {
+  color: $text-color;
+  padding: 0 2px;
+
+  for $type in $note-types {
+    &.{$type} {
+      background: lookup('$label-' + $type);
+    }
+  }
+}

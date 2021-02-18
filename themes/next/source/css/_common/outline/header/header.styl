@@ -1,0 +1,38 @@
+// Header Section
+// --------------------------------------------------
+.headband {
+  background: $headband-bg;
+  height: $headband-height;
+
+  +tablet-mobile() {
+    display: none;
+  }
+}
+
+.header {
+  background: $head-bg;
+}
+
+.header-inner {
+  main-container();
+}
+
+.site-brand-container {
+  display: flex;
+  flex-shrink: 0;
+  padding: 0 10px;
+}
+
+.use-motion {
+  .header, .site-brand-container .toggle {
+    opacity: 0;
+  }
+}
+
+@import 'site-meta';
+@import 'site-nav';
+@import 'menu';
+
+@import 'bookmark' if (hexo-config('bookmark.enable'));
+
+@import 'github-banner' if (hexo-config('github_banner.enable'));

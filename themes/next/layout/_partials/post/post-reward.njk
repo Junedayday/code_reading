@@ -1,0 +1,18 @@
+<div class="reward-container">
+  <div>{{ page.reward_settings.comment }}</div>
+  <button onclick="document.querySelector('.post-reward').classList.toggle('active');">
+    {{ __('reward.donate') }}
+  </button>
+  <div class="post-reward">
+
+    {%- for name, image in theme.reward %}
+      {%- set builtin = ['wechatpay', 'alipay', 'paypal', 'bitcoin'] %}
+      {%- set translation = __('reward.' + name) if builtin.includes(name) else name %}
+      <div>
+        <img src="{{ url_for(image) }}" alt="{{ author }} {{ translation }}">
+        <span>{{ translation }}</span>
+      </div>
+    {%- endfor %}
+
+  </div>
+</div>

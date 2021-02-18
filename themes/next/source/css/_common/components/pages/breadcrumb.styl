@@ -1,0 +1,21 @@
+ul.breadcrumb {
+  font-size: $font-size-smallest;
+  list-style: none;
+  margin: 1em 0;
+  padding: 0 2em;
+  text-align: center;
+
+  li {
+    display: inline;
+  }
+
+  li:not(:first-child)::before {
+    content: '/\00a0';
+    font-weight: normal;
+    padding: .5em;
+  }
+
+  li:last-child {
+    font-weight: bold;
+  }
+}

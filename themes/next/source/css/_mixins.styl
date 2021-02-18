@@ -1,0 +1,221 @@
+mobile-smallest() {
+  @media (max-width: 413px) {
+    {block};
+  }
+}
+
+mobile-small() {
+  @media (max-width: 567px) {
+    {block};
+  }
+}
+
+mobile() {
+  @media (max-width: 767px) {
+    {block};
+  }
+}
+
+tablet-mobile() {
+  @media (max-width: 991px) {
+    {block};
+  }
+}
+
+tablet-desktop() {
+  @media (min-width: 768px) {
+    {block};
+  }
+}
+
+tablet() {
+  @media (min-width: 768px) and (max-width: 991px) {
+    {block};
+  }
+}
+
+desktop() {
+  @media (min-width: 992px) {
+    {block};
+  }
+}
+
+desktop-large() {
+  @media (min-width: 1200px) {
+    {block};
+  }
+}
+
+desktop-largest() {
+  @media (min-width: 1600px) {
+    {block};
+  }
+}
+
+random-color($min, $max) {
+  return floor(math(0, 'random') * ($max - $min + 1) + $min);
+}
+
+word-wrap() {
+  overflow-wrap: break-word;
+}
+
+disable-user-select() {
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+sidebar-inline-links-item() {
+  margin: 5px 0 0;
+
+  a, span.exturl {
+    box-sizing: border-box;
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    padding: 0 5px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+flex-wrap() {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+flex-column() {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+post-card() {
+  background: var(--card-bg-color);
+  border-left: 3px solid $red;
+  margin: $post-card-margin;
+}
+
+font-family-icons($icon = '') {
+  if ($icon) {
+    content: $icon;
+  }
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+}
+
+main-container() {
+  margin: 0 auto;
+  width: $content-desktop;
+
+  +desktop-large() {
+    width: $content-desktop-large;
+  }
+
+  +desktop-largest() {
+    width: $content-desktop-largest;
+  }
+}
+
+sidebar-toggle-position($reverse = false) {
+  $condition = hexo-config('sidebar.position') == 'right';
+  if (($scheme == 'Muse') || ($scheme == 'Mist')) {
+    $condition = $condition == $reverse;
+  }
+  if ($condition) {
+    left: $b2t-position-right;
+    +tablet-mobile() {
+      left: $b2t-position-right-mobile;
+    }
+  } else {
+    right: $b2t-position-right;
+    +tablet-mobile() {
+      right: $b2t-position-right-mobile;
+    }
+  }
+}
+
+sidebar-toggle() {
+  background: $b2t-bg-color;
+  cursor: pointer;
+  opacity: $b2t-opacity;
+  position: fixed;
+  z-index: $zindex-3;
+  sidebar-toggle-position();
+
+  &:hover {
+    opacity: $b2t-opacity-hover;
+  }
+
+  +tablet-mobile() {
+    opacity: $b2t-opacity-hover;
+  }
+}
+
+round-icon($diameter) {
+  border-radius: 50%;
+  content: ' ';
+  height: $diameter;
+  width: $diameter;
+}
+
+toggle-arrow($position) {
+  if ($position == 'right') {
+    .toggle-line:first-child {
+      top: 2px;
+      transform: rotate(-45deg);
+      width: 50%;
+    }
+
+    .toggle-line:last-child {
+      top: -2px;
+      transform: rotate(45deg);
+      width: 50%;
+    }
+  } else {
+    .toggle-line:first-child {
+      left: 50%;
+      top: 2px;
+      transform: rotate(45deg);
+      width: 50%;
+    }
+
+    .toggle-line:last-child {
+      left: 50%;
+      top: -2px;
+      transform: rotate(-45deg);
+      width: 50%;
+    }
+  }
+}
+
+toggle-close($position) {
+  .toggle-line:nth-child(2) {
+    opacity: 0;
+  }
+
+  if ($position == 'right') {
+    .toggle-line:first-child {
+      top: 5px;
+      transform: rotate(-45deg);
+    }
+
+    .toggle-line:last-child {
+      top: -5px;
+      transform: rotate(45deg);
+    }
+  } else {
+    .toggle-line:first-child {
+      top: 5px;
+      transform: rotate(45deg);
+    }
+
+    .toggle-line:last-child {
+      top: -5px;
+      transform: rotate(-45deg);
+    }
+  }
+}

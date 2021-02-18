@@ -1,0 +1,130 @@
+@import '../Pisces/_layout';
+@import '../Pisces/_header';
+@import '../Pisces/_menu';
+@import '../Pisces/_sub-menu';
+@import '../Pisces/_sidebar';
+
+// ==================================================
+// Rewrite _layout.styl
+// ==================================================
+// Sidebar padding used as main desktop content padding for sidebar padding and post blocks padding too.
+
+// In `source/css/_variables/Pisces.styl` there are variable for main offset:
+// $sidebar-offset                   = 12px;
+// This value alse can be changed in main NexT config as `sidebar: offset: 12` option.
+
+// In `source/css/_variables/base.styl` there are variables for other resolutions:
+// $content-tablet-padding           = 10px;
+// $content-mobile-padding           = 8px;
+// P.S. If u want to change this paddings u may set this variables into `custom_file_path.variable` (in theme _config.yml).
+
+// So, it will 12px in Desktop, 10px in Tablets and 8px in Mobiles for all possible paddings.
+
+// ==================================================
+// Desktop layout styles.
+// ==================================================
+// Post blocks.
+.main-inner > {
+  .sub-menu, .post-block, .tabs-comment, .comments, .pagination {
+    background: var(--content-bg-color);
+    border-radius: $border-radius-inner;
+    box-shadow: $box-shadow-inner;
+
+    &:not(:first-child):not(.sub-menu) {
+      border-radius: $border-radius;
+      box-shadow: $box-shadow;
+      margin-top: $sidebar-offset;
+
+      +tablet() {
+        margin-top: $content-tablet-padding;
+      }
+
+      +mobile() {
+        margin-top: $content-mobile-padding;
+      }
+    }
+  }
+}
+
+// Post & Comments blocks.
+.post-block, .comments {
+  padding: $content-desktop-padding;
+}
+
+// Post delimiters.
+.post-eof {
+  display: none;
+}
+
+// Pagination.
+.pagination {
+  border-top: initial;
+  padding: 10px 0 10px;
+}
+
+// ==================================================
+// Headers.
+// ==================================================
+.post-body {
+  h1, h2 {
+    border-bottom: 1px solid $body-bg-color;
+  }
+
+  h3 {
+    border-bottom: 1px dotted $body-bg-color;
+  }
+}
+
+// ==================================================
+// > 768px & < 991px
+// ==================================================
++tablet() {
+  // Posts in blocks.
+  .main-inner {
+    padding: $content-tablet-padding;
+  }
+
+  .posts-expand {
+    // Components inside Posts.
+    .post-button {
+      margin-top: ($content-tablet-padding * 2);
+    }
+  }
+
+  .post-block {
+    // Inside posts blocks content padding (default 40px).
+    padding: ($content-tablet-padding * 2);
+  }
+
+  .comments {
+    padding: $content-tablet-padding ($content-tablet-padding * 2);
+    // padding: initial;
+    // padding-top: $content-tablet-padding;
+  }
+}
+
+// ==================================================
+// < 767px
+// ==================================================
++mobile() {
+  // Posts in blocks.
+  .main-inner {
+    padding: $content-mobile-padding;
+  }
+
+  .posts-expand {
+    // Components inside Posts.
+    .post-button {
+      margin: $sidebar-offset 0;
+    }
+  }
+
+  .post-block {
+    // Inside posts blocks content padding (default 40px).
+    padding: $sidebar-offset;
+  }
+
+  .comments {
+    padding: 10px $sidebar-offset;
+  }
+}

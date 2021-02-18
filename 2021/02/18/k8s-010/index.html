@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.14.0/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"8.0.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+  </script>
+
+  <meta name="description" content="聚焦目标了解Informer在发现资源变化后，是怎么处理的 目录 查看消费的过程 掌握Index数据结构 信息的分发distribute Informer的综合思考  Process1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【K8s源码品读】010：Phase 1 - kube-scheduler - Informer是如何保存数据的">
+<meta property="og:url" content="http://example.com/2021/02/18/k8s-010/index.html">
+<meta property="og:site_name" content="Junedayday Blog">
+<meta property="og:description" content="聚焦目标了解Informer在发现资源变化后，是怎么处理的 目录 查看消费的过程 掌握Index数据结构 信息的分发distribute Informer的综合思考  Process1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-02-18T08:55:55.000Z">
+<meta property="article:modified_time" content="2021-02-18T09:00:19.521Z">
+<meta property="article:author" content="Junedayday">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2021/02/18/k8s-010/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>【K8s源码品读】010：Phase 1 - kube-scheduler - Informer是如何保存数据的 | Junedayday Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Junedayday Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">六月天天的个人博客</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%81%9A%E7%84%A6%E7%9B%AE%E6%A0%87"><span class="nav-number">1.</span> <span class="nav-text">聚焦目标</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%AE%E5%BD%95"><span class="nav-number">2.</span> <span class="nav-text">目录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Process"><span class="nav-number">3.</span> <span class="nav-text">Process</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Index"><span class="nav-number">4.</span> <span class="nav-text">Index</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#distribute"><span class="nav-number">5.</span> <span class="nav-text">distribute</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Summary"><span class="nav-number">6.</span> <span class="nav-text">Summary</span></a></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Junedayday</p>
+  <div class="site-description" itemprop="description">Blog信息</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">13</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </section>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+      
+
+      
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/18/k8s-010/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Junedayday">
+      <meta itemprop="description" content="Blog信息">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Junedayday Blog">
+    </span>
+
+    
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          【K8s源码品读】010：Phase 1 - kube-scheduler - Informer是如何保存数据的
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-02-18 16:55:55 / 修改时间：17:00:19" itemprop="dateCreated datePublished" datetime="2021-02-18T16:55:55+08:00">2021-02-18</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="聚焦目标"><a href="#聚焦目标" class="headerlink" title="聚焦目标"></a>聚焦目标</h2><p>了解Informer在发现资源变化后，是怎么处理的</p>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ol start="5">
+<li><a href="#Process">查看消费的过程</a></li>
+<li><a href="#Index">掌握Index数据结构</a></li>
+<li><a href="#distribute">信息的分发distribute</a></li>
+<li><a href="#Summary">Informer的综合思考</a></li>
+</ol>
+<h2 id="Process"><a href="#Process" class="headerlink" title="Process"></a>Process</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *controller)</span> <span class="title">processLoop</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">    <span class="comment">// Pop出Object元素</span></span><br><span class="line">		obj, err := c.config.Queue.Pop(PopProcessFunc(c.config.Process))</span><br><span class="line">		<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">if</span> err == ErrFIFOClosed &#123;</span><br><span class="line">				<span class="keyword">return</span></span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">if</span> c.config.RetryOnError &#123;</span><br><span class="line">				<span class="comment">// 重新进队列</span></span><br><span class="line">				c.config.Queue.AddIfNotPresent(obj)</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 去查看Pop的具体实现</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *FIFO)</span> <span class="title">Pop</span><span class="params">(process PopProcessFunc)</span> <span class="params">(<span class="keyword">interface</span>&#123;&#125;, error)</span></span> &#123;</span><br><span class="line">	f.lock.Lock()</span><br><span class="line">	<span class="keyword">defer</span> f.lock.Unlock()</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="comment">// 调用process去处理item，然后返回</span></span><br><span class="line">		item, ok := f.items[id]</span><br><span class="line">		<span class="built_in">delete</span>(f.items, id)</span><br><span class="line">		err := process(item)</span><br><span class="line">		<span class="keyword">return</span> item, err</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 然后去查一下 PopProcessFunc 的定义，在创建controller前</span></span><br><span class="line">cfg := &amp;Config&#123;</span><br><span class="line">		Process:           s.HandleDeltas,</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *sharedIndexInformer)</span> <span class="title">HandleDeltas</span><span class="params">(obj <span class="keyword">interface</span>&#123;&#125;)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">	s.blockDeltas.Lock()</span><br><span class="line">	<span class="keyword">defer</span> s.blockDeltas.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> _, d := <span class="keyword">range</span> obj.(Deltas) &#123;</span><br><span class="line">		<span class="keyword">switch</span> d.Type &#123;</span><br><span class="line">    <span class="comment">// 增、改、替换、同步</span></span><br><span class="line">		<span class="keyword">case</span> Sync, Replaced, Added, Updated:</span><br><span class="line">			s.cacheMutationDetector.AddObject(d.Object)</span><br><span class="line">      <span class="comment">// 先去indexer查询</span></span><br><span class="line">			<span class="keyword">if</span> old, exists, err := s.indexer.Get(d.Object); err == <span class="literal">nil</span> &amp;&amp; exists &#123;</span><br><span class="line">        <span class="comment">// 如果数据已经存在，就执行Update逻辑</span></span><br><span class="line">				<span class="keyword">if</span> err := s.indexer.Update(d.Object); err != <span class="literal">nil</span> &#123;</span><br><span class="line">					<span class="keyword">return</span> err</span><br><span class="line">				&#125;</span><br><span class="line"></span><br><span class="line">				isSync := <span class="literal">false</span></span><br><span class="line">				<span class="keyword">switch</span> &#123;</span><br><span class="line">				<span class="keyword">case</span> d.Type == Sync:</span><br><span class="line">					isSync = <span class="literal">true</span></span><br><span class="line">				<span class="keyword">case</span> d.Type == Replaced:</span><br><span class="line">					<span class="keyword">if</span> accessor, err := meta.Accessor(d.Object); err == <span class="literal">nil</span> &#123;</span><br><span class="line">							isSync = accessor.GetResourceVersion() == oldAccessor.GetResourceVersion()</span><br><span class="line">						&#125;</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;</span><br><span class="line">      	<span class="comment">// 分发Update事件</span></span><br><span class="line">				s.processor.distribute(updateNotification&#123;oldObj: old, newObj: d.Object&#125;, isSync)</span><br><span class="line">			&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      	<span class="comment">// 没查到数据，就执行Add操作</span></span><br><span class="line">				<span class="keyword">if</span> err := s.indexer.Add(d.Object); err != <span class="literal">nil</span> &#123;</span><br><span class="line">					<span class="keyword">return</span> err</span><br><span class="line">				&#125;</span><br><span class="line">      	<span class="comment">// 分发 Add 事件</span></span><br><span class="line">				s.processor.distribute(addNotification&#123;newObj: d.Object&#125;, <span class="literal">false</span>)</span><br><span class="line">			&#125;</span><br><span class="line">   	<span class="comment">// 删除</span></span><br><span class="line">		<span class="keyword">case</span> Deleted:</span><br><span class="line">    	<span class="comment">// 去indexer删除</span></span><br><span class="line">			<span class="keyword">if</span> err := s.indexer.Delete(d.Object); err != <span class="literal">nil</span> &#123;</span><br><span class="line">				<span class="keyword">return</span> err</span><br><span class="line">			&#125;</span><br><span class="line">    	<span class="comment">// 分发 delete 事件</span></span><br><span class="line">			s.processor.distribute(deleteNotification&#123;oldObj: d.Object&#125;, <span class="literal">false</span>)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Index"><a href="#Index" class="headerlink" title="Index"></a>Index</h2><p><code>Index</code> 的定义为资源的本地存储，保持与etcd中的资源信息一致。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 我们去看看Index是怎么创建的</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewSharedIndexInformer</span><span class="params">(lw ListerWatcher, exampleObject runtime.Object, defaultEventHandlerResyncPeriod time.Duration, indexers Indexers)</span> <span class="title">SharedIndexInformer</span></span> &#123;</span><br><span class="line">	realClock := &amp;clock.RealClock&#123;&#125;</span><br><span class="line">	sharedIndexInformer := &amp;sharedIndexInformer&#123;</span><br><span class="line">		processor:                       &amp;sharedProcessor&#123;clock: realClock&#125;,</span><br><span class="line">    <span class="comment">// indexer 的初始化</span></span><br><span class="line">		indexer:                         NewIndexer(DeletionHandlingMetaNamespaceKeyFunc, indexers),</span><br><span class="line">		listerWatcher:                   lw,</span><br><span class="line">		objectType:                      exampleObject,</span><br><span class="line">		resyncCheckPeriod:               defaultEventHandlerResyncPeriod,</span><br><span class="line">		defaultEventHandlerResyncPeriod: defaultEventHandlerResyncPeriod,</span><br><span class="line">		cacheMutationDetector:           NewCacheMutationDetector(fmt.Sprintf(<span class="string">&quot;%T&quot;</span>, exampleObject)),</span><br><span class="line">		clock:                           realClock,</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> sharedIndexInformer</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 生成一个map和func组合而成的Indexer</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewIndexer</span><span class="params">(keyFunc KeyFunc, indexers Indexers)</span> <span class="title">Indexer</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> &amp;cache&#123;</span><br><span class="line">		cacheStorage: NewThreadSafeStore(indexers, Indices&#123;&#125;),</span><br><span class="line">		keyFunc:      keyFunc,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ThreadSafeStore的底层是一个并发安全的map，具体实现我们暂不考虑</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewThreadSafeStore</span><span class="params">(indexers Indexers, indices Indices)</span> <span class="title">ThreadSafeStore</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> &amp;threadSafeMap&#123;</span><br><span class="line">		items:    <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">interface</span>&#123;&#125;&#123;&#125;,</span><br><span class="line">		indexers: indexers,</span><br><span class="line">		indices:  indices,</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="distribute"><a href="#distribute" class="headerlink" title="distribute"></a>distribute</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 在上面的Process代码中，我们看到了将数据存储到Indexer后，调用了一个分发的函数</span></span><br><span class="line">s.processor.distribute()</span><br><span class="line"></span><br><span class="line"><span class="comment">// 分发process的创建</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewSharedIndexInformer</span><span class="params">()</span> <span class="title">SharedIndexInformer</span></span> &#123;</span><br><span class="line">	sharedIndexInformer := &amp;sharedIndexInformer&#123;</span><br><span class="line">		processor:                       &amp;sharedProcessor&#123;clock: realClock&#125;,</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> sharedIndexInformer</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// sharedProcessor的结构</span></span><br><span class="line"><span class="keyword">type</span> sharedProcessor <span class="keyword">struct</span> &#123;</span><br><span class="line">	listenersStarted <span class="keyword">bool</span></span><br><span class="line"> 	<span class="comment">// 读写锁</span></span><br><span class="line">	listenersLock    sync.RWMutex</span><br><span class="line">  <span class="comment">// 普通监听列表</span></span><br><span class="line">	listeners        []*processorListener</span><br><span class="line">  <span class="comment">// 同步监听列表</span></span><br><span class="line">	syncingListeners []*processorListener</span><br><span class="line">	clock            clock.Clock</span><br><span class="line">	wg               wait.Group</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 查看distribute函数</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *sharedProcessor)</span> <span class="title">distribute</span><span class="params">(obj <span class="keyword">interface</span>&#123;&#125;, sync <span class="keyword">bool</span>)</span></span> &#123;</span><br><span class="line">	p.listenersLock.RLock()</span><br><span class="line">	<span class="keyword">defer</span> p.listenersLock.RUnlock()</span><br><span class="line">	<span class="comment">// 将object分发到 同步监听 或者 普通监听 的列表</span></span><br><span class="line">	<span class="keyword">if</span> sync &#123;</span><br><span class="line">		<span class="keyword">for</span> _, listener := <span class="keyword">range</span> p.syncingListeners &#123;</span><br><span class="line">			listener.add(obj)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		<span class="keyword">for</span> _, listener := <span class="keyword">range</span> p.listeners &#123;</span><br><span class="line">			listener.add(obj)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 这个add的操作是利用了channel</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *processorListener)</span> <span class="title">add</span><span class="params">(notification <span class="keyword">interface</span>&#123;&#125;)</span></span> &#123;</span><br><span class="line">	p.addCh &lt;- notification</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h2><ol>
+<li><code>Informer</code> 依赖于 <code>Reflector</code> 模块，它有个组件为 xxxInformer，如 <code>podInformer</code> </li>
+<li>具体资源的 <code>Informer</code> 包含了一个连接到<code>kube-apiserver</code>的<code>client</code>，通过<code>List</code>和<code>Watch</code>接口查询资源变更情况</li>
+<li>检测到资源发生变化后，通过<code>Controller</code> 将数据放入队列<code>DeltaFIFOQueue</code>里，生产阶段完成</li>
+<li>在<code>DeltaFIFOQueue</code>的另一端，有消费者在不停地处理资源变化的事件，处理逻辑主要分2步<ol>
+<li>将数据保存到本地存储Indexer，它的底层实现是一个并发安全的threadSafeMap</li>
+<li>有些组件需要实时关注资源变化，会实时监听listen，就将事件分发到对应注册上来的listener上，自行处理</li>
+</ol>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/02/18/k8s-008/" rel="prev" title="【K8s源码品读】008：Phase 1 - kube-scheduler - 初探调度的启动流程与算法">
+                  <i class="fa fa-chevron-left"></i> 【K8s源码品读】008：Phase 1 - kube-scheduler - 初探调度的启动流程与算法
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/02/18/k8s-009/" rel="next" title="【K8s源码品读】009：Phase 1 - kube-scheduler - Informer监听资源变化">
+                  【K8s源码品读】009：Phase 1 - kube-scheduler - Informer监听资源变化 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+  
+  
+  
+
+
+
+      
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      
+
+      
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Junedayday</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

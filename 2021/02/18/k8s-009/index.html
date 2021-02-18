@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.14.0/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"8.0.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+  </script>
+
+  <meta name="description" content="聚焦目标了解Informer是如何从kube-apiserver监听资源变化的情况 目录 什么是Informer Shared Informer的实现 PodInformer的背后的实现 聚焦Reflect结构 本节小节  Informer什么是Informer？这一节，我将先抛开代码，重点讲一下这个Informer，因为它是理解k8s运行机制的核心概念。 我没有在官方文档中找到Informer的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【K8s源码品读】009：Phase 1 - kube-scheduler - Informer监听资源变化">
+<meta property="og:url" content="http://example.com/2021/02/18/k8s-009/index.html">
+<meta property="og:site_name" content="Junedayday Blog">
+<meta property="og:description" content="聚焦目标了解Informer是如何从kube-apiserver监听资源变化的情况 目录 什么是Informer Shared Informer的实现 PodInformer的背后的实现 聚焦Reflect结构 本节小节  Informer什么是Informer？这一节，我将先抛开代码，重点讲一下这个Informer，因为它是理解k8s运行机制的核心概念。 我没有在官方文档中找到Informer的">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-02-18T08:55:55.000Z">
+<meta property="article:modified_time" content="2021-02-18T09:00:07.409Z">
+<meta property="article:author" content="Junedayday">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2021/02/18/k8s-009/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>【K8s源码品读】009：Phase 1 - kube-scheduler - Informer监听资源变化 | Junedayday Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Junedayday Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">六月天天的个人博客</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%81%9A%E7%84%A6%E7%9B%AE%E6%A0%87"><span class="nav-number">1.</span> <span class="nav-text">聚焦目标</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%AE%E5%BD%95"><span class="nav-number">2.</span> <span class="nav-text">目录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Informer"><span class="nav-number">3.</span> <span class="nav-text">Informer</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Shared-Informer"><span class="nav-number">4.</span> <span class="nav-text">Shared Informer</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PodInformer"><span class="nav-number">5.</span> <span class="nav-text">PodInformer</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reflect"><span class="nav-number">6.</span> <span class="nav-text">Reflect</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Summary"><span class="nav-number">7.</span> <span class="nav-text">Summary</span></a></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Junedayday</p>
+  <div class="site-description" itemprop="description">Blog信息</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">13</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </section>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+      
+
+      
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/18/k8s-009/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Junedayday">
+      <meta itemprop="description" content="Blog信息">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Junedayday Blog">
+    </span>
+
+    
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          【K8s源码品读】009：Phase 1 - kube-scheduler - Informer监听资源变化
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-02-18 16:55:55 / 修改时间：17:00:07" itemprop="dateCreated datePublished" datetime="2021-02-18T16:55:55+08:00">2021-02-18</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="聚焦目标"><a href="#聚焦目标" class="headerlink" title="聚焦目标"></a>聚焦目标</h2><p>了解<code>Informer</code>是如何从kube-apiserver监听资源变化的情况</p>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ol>
+<li><a href="#informer">什么是Informer</a></li>
+<li><a href="#Shared-Informer">Shared Informer的实现</a></li>
+<li><a href="#PodInformer">PodInformer的背后的实现</a></li>
+<li><a href="#Reflect">聚焦Reflect结构</a></li>
+<li><a href="#Summary">本节小节</a></li>
+</ol>
+<h2 id="Informer"><a href="#Informer" class="headerlink" title="Informer"></a>Informer</h2><p>什么是<code>Informer</code>？这一节，我将先抛开代码，重点讲一下这个Informer，因为它是理解k8s运行机制的核心概念。</p>
+<p>我没有在官方文档中找到<code>Informer</code>的明确定义，中文直译为<code>通知器</code>。从<a target="_blank" rel="noopener" href="https://medium.com/@muhammet.arslan/write-your-own-kubernetes-controller-with-informers-9920e8ab6f84">这个链接</a>中，我们可以看到一个自定义资源的的处理流程。</p>
+<p>我简单概况下，<code>Informer</code>的核心功能是 <strong>获取并监听(ListAndWatch)对应资源的增删改，触发相应的事件操作(ResourceEventHandler)</strong></p>
+<h2 id="Shared-Informer"><a href="#Shared-Informer" class="headerlink" title="Shared Informer"></a>Shared Informer</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">client 是连接到 kube-apiserver 的客户端。</span></span><br><span class="line"><span class="comment">我们要理解k8s的设计：</span></span><br><span class="line"><span class="comment">1. etcd是核心的数据存储，对资源的修改会进行持久化</span></span><br><span class="line"><span class="comment">2. 只有kube-apiserver可以访问etcd</span></span><br><span class="line"><span class="comment">所以，kube-scheduler要了解资源的变化情况，只能通过kube-apiserver</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义了 Shared Informer，其中这个client是用来连接kube-apiserver的</span></span><br><span class="line">c.InformerFactory = informers.NewSharedInformerFactory(client, <span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 这里解答了为什么叫shared：一个资源会对应多个Informer，会导致效率低下，所以让一个资源对应一个sharedInformer，而一个sharedInformer内部自己维护多个Informer</span></span><br><span class="line"><span class="keyword">type</span> sharedInformerFactory <span class="keyword">struct</span> &#123;</span><br><span class="line">	client           kubernetes.Interface</span><br><span class="line">	namespace        <span class="keyword">string</span></span><br><span class="line">	tweakListOptions internalinterfaces.TweakListOptionsFunc</span><br><span class="line">	lock             sync.Mutex</span><br><span class="line">	defaultResync    time.Duration</span><br><span class="line">	customResync     <span class="keyword">map</span>[reflect.Type]time.Duration</span><br><span class="line">  <span class="comment">// 这个map就是维护多个Informer的关键实现</span></span><br><span class="line">	informers <span class="keyword">map</span>[reflect.Type]cache.SharedIndexInformer</span><br><span class="line">	startedInformers <span class="keyword">map</span>[reflect.Type]<span class="keyword">bool</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 运行函数</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *sharedInformerFactory)</span> <span class="title">Start</span><span class="params">(stopCh &lt;-<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span></span> &#123;</span><br><span class="line">	f.lock.Lock()</span><br><span class="line">	<span class="keyword">defer</span> f.lock.Unlock()</span><br><span class="line">	<span class="keyword">for</span> informerType, informer := <span class="keyword">range</span> f.informers &#123;</span><br><span class="line">		<span class="keyword">if</span> !f.startedInformers[informerType] &#123;</span><br><span class="line">      <span class="comment">// goroutine异步处理</span></span><br><span class="line">			<span class="keyword">go</span> informer.Run(stopCh)</span><br><span class="line">      <span class="comment">// 标记为已经运行，这样即使下次Start也不会重复运行</span></span><br><span class="line">			f.startedInformers[informerType] = <span class="literal">true</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 查找对应的informer</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *sharedInformerFactory)</span> <span class="title">InformerFor</span><span class="params">(obj runtime.Object, newFunc internalinterfaces.NewInformerFunc)</span> <span class="title">cache</span>.<span class="title">SharedIndexInformer</span></span> &#123;</span><br><span class="line">	f.lock.Lock()</span><br><span class="line">	<span class="keyword">defer</span> f.lock.Unlock()</span><br><span class="line">	<span class="comment">// 找到就直接返回</span></span><br><span class="line">	informerType := reflect.TypeOf(obj)</span><br><span class="line">	informer, exists := f.informers[informerType]</span><br><span class="line">	<span class="keyword">if</span> exists &#123;</span><br><span class="line">		<span class="keyword">return</span> informer</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	resyncPeriod, exists := f.customResync[informerType]</span><br><span class="line">	<span class="keyword">if</span> !exists &#123;</span><br><span class="line">		resyncPeriod = f.defaultResync</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// 没找到就会新建</span></span><br><span class="line">	informer = newFunc(f.client, resyncPeriod)</span><br><span class="line">	f.informers[informerType] = informer</span><br><span class="line">	<span class="keyword">return</span> informer</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// SharedInformerFactory 是 sharedInformerFactory 的接口定义</span></span><br><span class="line"><span class="keyword">type</span> SharedInformerFactory <span class="keyword">interface</span> &#123;</span><br><span class="line">  <span class="comment">// 我们这一阶段关注的Pod的Informer，属于核心资源</span></span><br><span class="line">	Core() core.Interface</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// core.Interface的定义</span></span><br><span class="line"><span class="keyword">type</span> Interface <span class="keyword">interface</span> &#123;</span><br><span class="line">	<span class="comment">// V1 provides access to shared informers for resources in V1.</span></span><br><span class="line">	V1() v1.Interface</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// v1.Interface 的定义</span></span><br><span class="line"><span class="keyword">type</span> Interface <span class="keyword">interface</span> &#123;</span><br><span class="line">  <span class="comment">// Pod的定义</span></span><br><span class="line">	Pods() PodInformer</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// PodInformer 是对应的接口</span></span><br><span class="line"><span class="keyword">type</span> PodInformer <span class="keyword">interface</span> &#123;</span><br><span class="line">	Informer() cache.SharedIndexInformer</span><br><span class="line">	Lister() v1.PodLister</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// podInformer 是具体的实现</span></span><br><span class="line"><span class="keyword">type</span> podInformer <span class="keyword">struct</span> &#123;</span><br><span class="line">	factory          internalinterfaces.SharedInformerFactory</span><br><span class="line">	tweakListOptions internalinterfaces.TweakListOptionsFunc</span><br><span class="line">	namespace        <span class="keyword">string</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 最后，我们可以看到podInformer调用了InformerFor函数进行了添加</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(f *podInformer)</span> <span class="title">Informer</span><span class="params">()</span> <span class="title">cache</span>.<span class="title">SharedIndexInformer</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> f.factory.InformerFor(&amp;corev1.Pod&#123;&#125;, f.defaultInformer)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="PodInformer"><a href="#PodInformer" class="headerlink" title="PodInformer"></a>PodInformer</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 实例化PodInformer，把对应的List/Watch操作方法传入到实例化函数，生成统一的SharedIndexInformer接口</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewFilteredPodInformer</span><span class="params">()</span> <span class="title">cache</span>.<span class="title">SharedIndexInformer</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> cache.NewSharedIndexInformer(</span><br><span class="line">    <span class="comment">// List和Watch实现从PodInterface里面查询</span></span><br><span class="line">		&amp;cache.ListWatch&#123;</span><br><span class="line">			ListFunc: <span class="function"><span class="keyword">func</span><span class="params">(options metav1.ListOptions)</span> <span class="params">(runtime.Object, error)</span></span> &#123;</span><br><span class="line">				<span class="keyword">if</span> tweakListOptions != <span class="literal">nil</span> &#123;</span><br><span class="line">					tweakListOptions(&amp;options)</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">return</span> client.CoreV1().Pods(namespace).List(context.TODO(), options)</span><br><span class="line">			&#125;,</span><br><span class="line">			WatchFunc: <span class="function"><span class="keyword">func</span><span class="params">(options metav1.ListOptions)</span> <span class="params">(watch.Interface, error)</span></span> &#123;</span><br><span class="line">				<span class="keyword">if</span> tweakListOptions != <span class="literal">nil</span> &#123;</span><br><span class="line">					tweakListOptions(&amp;options)</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">return</span> client.CoreV1().Pods(namespace).Watch(context.TODO(), options)</span><br><span class="line">			&#125;,</span><br><span class="line">		&#125;,</span><br><span class="line">		&amp;corev1.Pod&#123;&#125;,</span><br><span class="line">		resyncPeriod,</span><br><span class="line">		indexers,</span><br><span class="line">	)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 我们先看看Pod基本的List和Watch是怎么定义的</span></span><br><span class="line"><span class="comment">// Pod基本的增删改查等操作</span></span><br><span class="line"><span class="keyword">type</span> PodInterface <span class="keyword">interface</span> &#123;</span><br><span class="line">	List(ctx context.Context, opts metav1.ListOptions) (*v1.PodList, error)</span><br><span class="line">	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)</span><br><span class="line">	...</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// pods 是PodInterface的实现</span></span><br><span class="line"><span class="keyword">type</span> pods <span class="keyword">struct</span> &#123;</span><br><span class="line">	client rest.Interface</span><br><span class="line">	ns     <span class="keyword">string</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// List 和 Watch 是依赖客户端，也就是从kube-apiserver中查询的</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *pods)</span> <span class="title">List</span><span class="params">(ctx context.Context, opts metav1.ListOptions)</span> <span class="params">(result *v1.PodList, err error)</span></span> &#123;</span><br><span class="line">	err = c.client.Get().</span><br><span class="line">		Namespace(c.ns).</span><br><span class="line">		Resource(<span class="string">&quot;pods&quot;</span>).</span><br><span class="line">		VersionedParams(&amp;opts, scheme.ParameterCodec).</span><br><span class="line">		Timeout(timeout).</span><br><span class="line">		Do(ctx).</span><br><span class="line">		Into(result)</span><br><span class="line">	<span class="keyword">return</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *pods)</span> <span class="title">Watch</span><span class="params">(ctx context.Context, opts metav1.ListOptions)</span> <span class="params">(watch.Interface, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">return</span> c.client.Get().</span><br><span class="line">		Namespace(c.ns).</span><br><span class="line">		Resource(<span class="string">&quot;pods&quot;</span>).</span><br><span class="line">		VersionedParams(&amp;opts, scheme.ParameterCodec).</span><br><span class="line">		Timeout(timeout).</span><br><span class="line">		Watch(ctx)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 在上面，我们看到了异步运行Informer的代码 go informer.Run(stopCh)，我们看看是怎么run的</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *sharedIndexInformer)</span> <span class="title">Run</span><span class="params">(stopCh &lt;-<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span></span> &#123;</span><br><span class="line">  <span class="comment">// 这里有个 DeltaFIFO 的对象，</span></span><br><span class="line">  fifo := NewDeltaFIFOWithOptions(DeltaFIFOOptions&#123;</span><br><span class="line">		KnownObjects:          s.indexer,</span><br><span class="line">		EmitDeltaTypeReplaced: <span class="literal">true</span>,</span><br><span class="line">	&#125;)</span><br><span class="line">	<span class="comment">// 传入这个fifo到cfg</span></span><br><span class="line">	cfg := &amp;Config&#123;</span><br><span class="line">		Queue:            fifo,</span><br><span class="line">		...</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// 新建controller</span></span><br><span class="line">	<span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		s.startedLock.Lock()</span><br><span class="line">		<span class="keyword">defer</span> s.startedLock.Unlock()</span><br><span class="line"></span><br><span class="line">		s.controller = New(cfg)</span><br><span class="line">		s.controller.(*controller).clock = s.clock</span><br><span class="line">		s.started = <span class="literal">true</span></span><br><span class="line">	&#125;()</span><br><span class="line">	<span class="comment">// 运行controller</span></span><br><span class="line">	s.controller.Run(stopCh)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Controller的运行</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *controller)</span> <span class="title">Run</span><span class="params">(stopCh &lt;-<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span></span> &#123;</span><br><span class="line">	<span class="comment">// </span></span><br><span class="line">	r := NewReflector(</span><br><span class="line">		c.config.ListerWatcher,</span><br><span class="line">		c.config.ObjectType,</span><br><span class="line">		c.config.Queue,</span><br><span class="line">		c.config.FullResyncPeriod,</span><br><span class="line">	)</span><br><span class="line">	r.ShouldResync = c.config.ShouldResync</span><br><span class="line">	r.clock = c.clock</span><br><span class="line">	<span class="keyword">if</span> c.config.WatchErrorHandler != <span class="literal">nil</span> &#123;</span><br><span class="line">		r.watchErrorHandler = c.config.WatchErrorHandler</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	c.reflectorMutex.Lock()</span><br><span class="line">	c.reflector = r</span><br><span class="line">	c.reflectorMutex.Unlock()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> wg wait.Group</span><br><span class="line">  <span class="comment">// 生产，往Queue里放数据</span></span><br><span class="line">	wg.StartWithChannel(stopCh, r.Run)</span><br><span class="line">  <span class="comment">// 消费，从Queue消费数据</span></span><br><span class="line">	wait.Until(c.processLoop, time.Second, stopCh)</span><br><span class="line">	wg.Wait()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Reflect"><a href="#Reflect" class="headerlink" title="Reflect"></a>Reflect</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 我们再回头看看这个Reflect结构</span></span><br><span class="line">r := NewReflector(</span><br><span class="line">  	<span class="comment">// ListerWatcher 我们已经有了解，就是通过client监听kube-apiserver暴露出来的Resource</span></span><br><span class="line">		c.config.ListerWatcher,</span><br><span class="line">		c.config.ObjectType,</span><br><span class="line">  	<span class="comment">// Queue 是我们前文看到的一个 DeltaFIFOQueue，认为这是一个先进先出的队列</span></span><br><span class="line">		c.config.Queue,</span><br><span class="line">		c.config.FullResyncPeriod,</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(r *Reflector)</span> <span class="title">Run</span><span class="params">(stopCh &lt;-<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span></span> &#123;</span><br><span class="line">	klog.V(<span class="number">2</span>).Infof(<span class="string">&quot;Starting reflector %s (%s) from %s&quot;</span>, r.expectedTypeName, r.resyncPeriod, r.name)</span><br><span class="line">	wait.BackoffUntil(<span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// 调用了ListAndWatch</span></span><br><span class="line">		<span class="keyword">if</span> err := r.ListAndWatch(stopCh); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			r.watchErrorHandler(r, err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;, r.backoffManager, <span class="literal">true</span>, stopCh)</span><br><span class="line">	klog.V(<span class="number">2</span>).Infof(<span class="string">&quot;Stopping reflector %s (%s) from %s&quot;</span>, r.expectedTypeName, r.resyncPeriod, r.name)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(r *Reflector)</span> <span class="title">ListAndWatch</span><span class="params">(stopCh &lt;-<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span> <span class="title">error</span></span> &#123;</span><br><span class="line">		<span class="comment">// watchHandler顾名思义，就是Watch到对应的事件，调用对应的Handler</span></span><br><span class="line">		<span class="keyword">if</span> err := r.watchHandler(start, w, &amp;resourceVersion, resyncerrc, stopCh); err != <span class="literal">nil</span> &#123;</span><br><span class="line">			<span class="keyword">if</span> err != errorStopRequested &#123;</span><br><span class="line">				<span class="keyword">switch</span> &#123;</span><br><span class="line">				<span class="keyword">case</span> isExpiredError(err):</span><br><span class="line">					klog.V(<span class="number">4</span>).Infof(<span class="string">&quot;%s: watch of %v closed with: %v&quot;</span>, r.name, r.expectedTypeName, err)</span><br><span class="line">				<span class="keyword">default</span>:</span><br><span class="line">					klog.Warningf(<span class="string">&quot;%s: watch of %v ended with: %v&quot;</span>, r.name, r.expectedTypeName, err)</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(r *Reflector)</span> <span class="title">watchHandler</span><span class="params">()</span> <span class="title">error</span></span> &#123;</span><br><span class="line">loop:</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">    <span class="comment">// 一个经典的GO语言select监听多channel的模式</span></span><br><span class="line">		<span class="keyword">select</span> &#123;</span><br><span class="line">    <span class="comment">// 整体的step channel</span></span><br><span class="line">		<span class="keyword">case</span> &lt;-stopCh:</span><br><span class="line">			<span class="keyword">return</span> errorStopRequested</span><br><span class="line">    <span class="comment">// 错误相关的error channel</span></span><br><span class="line">		<span class="keyword">case</span> err := &lt;-errc:</span><br><span class="line">			<span class="keyword">return</span> err</span><br><span class="line">    <span class="comment">// 接收事件event的channel</span></span><br><span class="line">		<span class="keyword">case</span> event, ok := &lt;-w.ResultChan():</span><br><span class="line">      <span class="comment">// channel被关闭，退出loop</span></span><br><span class="line">			<span class="keyword">if</span> !ok &#123;</span><br><span class="line">				<span class="keyword">break</span> loop</span><br><span class="line">			&#125;</span><br><span class="line">      </span><br><span class="line">			<span class="comment">// 一系列的资源验证代码跳过</span></span><br><span class="line">      </span><br><span class="line">			<span class="keyword">switch</span> event.Type &#123;</span><br><span class="line">      <span class="comment">// 增删改三种Event，分别对应到去store，即DeltaFIFO中，操作object</span></span><br><span class="line">			<span class="keyword">case</span> watch.Added:</span><br><span class="line">				err := r.store.Add(event.Object)</span><br><span class="line">			<span class="keyword">case</span> watch.Modified:</span><br><span class="line">				err := r.store.Update(event.Object)</span><br><span class="line">			<span class="keyword">case</span> watch.Deleted:</span><br><span class="line">				err := r.store.Delete(event.Object)</span><br><span class="line">			<span class="keyword">case</span> watch.Bookmark:</span><br><span class="line">			<span class="keyword">default</span>:</span><br><span class="line">				utilruntime.HandleError(fmt.Errorf(<span class="string">&quot;%s: unable to understand watch event %#v&quot;</span>, r.name, event))</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h2><ol>
+<li><code>Informer</code> 依赖于 <code>Reflector</code> 模块，它有个组件为 xxxInformer，如 <code>podInformer</code> </li>
+<li>具体资源的 <code>Informer</code> 包含了一个连接到<code>kube-apiserver</code>的<code>client</code>，通过<code>List</code>和<code>Watch</code>接口查询资源变更情况</li>
+<li>检测到资源发生变化后，通过<code>Controller</code> 将数据放入队列<code>DeltaFIFOQueue</code>里，生产阶段完成</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/02/18/k8s-010/" rel="prev" title="【K8s源码品读】010：Phase 1 - kube-scheduler - Informer是如何保存数据的">
+                  <i class="fa fa-chevron-left"></i> 【K8s源码品读】010：Phase 1 - kube-scheduler - Informer是如何保存数据的
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/02/18/k8s-011/" rel="next" title="【K8s源码品读】011：Phase 1 - kube-scheduler - 了解分配pod的大致流程">
+                  【K8s源码品读】011：Phase 1 - kube-scheduler - 了解分配pod的大致流程 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+  
+  
+  
+
+
+
+      
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      
+
+      
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Junedayday</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.0/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

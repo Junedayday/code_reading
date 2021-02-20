@@ -1,6 +1,11 @@
-# gRPC源码分析(二)：从官网文档看gRPC的特性
-
-
+---
+title: gRPC源码分析(二)：从官网文档看gRPC的特性
+date: 2021-02-20 19:34:45
+categories: 
+- 源码阅读
+tags:
+- gRPC
+---
 
 在第一部分，我们学习了gRPC的基本调用过程，这样我们对全局层面有了一定了解。接下来，我们将结合官方文档，继续深入学习、探索下去。
 
@@ -97,3 +102,14 @@
 [代码链接](https://grpc.io/docs/tutorials/basic/go/#bidirectional-streaming-rpc)
 
 将 `SendAndClose` 变为 `Send`，其余基本不变。从这里可以看到，正常的关闭都是由服务端发起的。
+
+
+
+> Github: https://github.com/Junedayday/code_reading
+>
+> Blog: http://junes.tech/
+>
+> Bilibili：https://space.bilibili.com/293775192
+>
+> 公众号：golangcoding
+

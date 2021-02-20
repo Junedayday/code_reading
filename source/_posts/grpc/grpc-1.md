@@ -1,4 +1,11 @@
-# gRPC源码分析（一）：gRPC的系统调用过程
+---
+title: gRPC源码分析（一）：gRPC的系统调用过程
+date: 2021-02-20 19:34:41
+categories: 
+- 源码阅读
+tags:
+- gRPC
+---
 
 
 
@@ -127,3 +134,14 @@ r, err := c.SayHello(ctx, &pb.HelloRequest{Name: name})
 
 1. 核心调用的是 Invoke 方法，具体实现要看grpc.ClientConn中
 2. grpc.ClientConn中实现了Invoke方法，在call.go文件中，详情都在invoke中
+
+
+
+> Github: https://github.com/Junedayday/code_reading
+>
+> Blog: http://junes.tech/
+>
+> Bilibili：https://space.bilibili.com/293775192
+>
+> 公众号：golangcoding
+

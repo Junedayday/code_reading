@@ -1,6 +1,13 @@
+---
+title: gRPC源码分析(四)：剖析Proto序列化
+date: 2021-02-20 19:34:49
+categories: 
+- 源码阅读
+tags:
+- gRPC
+---
 
 
-# gRPC源码分析(四)：剖析Proto序列化
 
 在前面的分析中，我们已经知道了使用proto序列化的代码在[encoding目录](https://github.com/grpc/grpc-go/tree/v1.29.x/encoding/proto)中，路径中只有三个文件，其中2个还是测试文件，看起来这次的工作量并不大。
 
@@ -105,3 +112,14 @@ func main() {
 ## 结语
 
 本次的分析到这里就暂时告一段落了，阅读protobuf的相关代码还是非常耗时耗力的。其实这块最主要的复杂度在于为了兼容新老版本，采用了大量的Interface实现。Interface带有面向对象特色，在重构代码时很有意义，不过也给阅读代码时，查找方法对应实现时带来了复杂度。
+
+
+
+> Github: https://github.com/Junedayday/code_reading
+>
+> Blog: http://junes.tech/
+>
+> Bilibili：https://space.bilibili.com/293775192
+>
+> 公众号：golangcoding
+

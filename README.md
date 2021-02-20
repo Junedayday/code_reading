@@ -11,7 +11,6 @@ Start Our Travel for Go Code Reading
 
 ### 迁移中
 
-- - 
 - 开源项目 **剖析经典项目，提升实战能力**
     - gRPC
       - [gRPC的系统调用过程](grpc/grpc1.md)

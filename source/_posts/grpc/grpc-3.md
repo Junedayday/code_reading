@@ -1,6 +1,11 @@
-# gRPC源码分析(三)：从Github文档了解gRPC的项目细节
-
-
+---
+title: gRPC源码分析(三)：从Github文档了解gRPC的项目细节
+date: 2021-02-20 19:34:47
+categories: 
+- 源码阅读
+tags:
+- gRPC
+---
 
 ## [官方Git总览](https://github.com/grpc)
 
@@ -243,3 +248,14 @@ gRPC的错误码，原代码见[链接](https://github.com/grpc/grpc-go/blob/v1.
 #### [versioning](https://github.com/grpc/grpc-go/blob/master/Documentation/versioning.md)
 
 版本演进，一般情况下每6周一个小版本，紧急修复会打补丁号。
+
+
+
+> Github: https://github.com/Junedayday/code_reading
+>
+> Blog: http://junes.tech/
+>
+> Bilibili：https://space.bilibili.com/293775192
+>
+> 公众号：golangcoding
+

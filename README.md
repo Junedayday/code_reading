@@ -6,17 +6,12 @@ Start Our Travel for Go Code Reading
 
 - 开源项目 **剖析经典项目，提升实战能力**
   - [Kubernetes源码阅读](http://junes.tech/tags/Kubernetes/)
+- [初识gRPC](http://junes.tech/tags/gRPC/)
 - 好文共读 **从大师的思想中汲取营养**
   - [Go编程模式 - From 陈皓](http://junes.tech/tags/Go-Programming-Patterns/)
 
 ### 迁移中
 
-- 开源项目 **剖析经典项目，提升实战能力**
-    - gRPC
-      - [gRPC的系统调用过程](grpc/grpc1.md)
-      - [从官网文档看gRPC的特性](grpc/grpc2.md)
-      - [从Github文档了解gRPC的项目细节](grpc/grpc3.md)
-      - [剖析Proto序列化](grpc/grpc4.md)
 - Go基础知识点 **了解底层，方可更轻松地掌握Go语言**
     - [Go并发](basic/goroutine.md)
     - [基础数据结构](basic/data_struct.md)

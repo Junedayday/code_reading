@@ -6,13 +6,12 @@ Start Our Travel for Go Code Reading
 
 - 开源项目 **剖析经典项目，提升实战能力**
   - [Kubernetes源码阅读](http://junes.tech/tags/Kubernetes/)
-
-  
+- 好文共读 **从大师的思想中汲取营养**
+  - [Go编程模式 - From 陈皓](http://junes.tech/tags/Go-Programming-Patterns/)
 
 ### 迁移中
 
-- 好文共读 **从大师的思想中汲取营养**
-    - [Go编程模式 - From 陈皓](reading/go_programming_patterns/go_programming_patterns.md)
+- - 
 - 开源项目 **剖析经典项目，提升实战能力**
     - gRPC
       - [gRPC的系统调用过程](grpc/grpc1.md)

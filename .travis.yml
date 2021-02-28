@@ -11,20 +11,20 @@ install:
 script:
 - hexo g
 after_success:
-- cd ./public
-- git init
-- git config user.name "Junedayday"
-- git config user.email "junedayday@gmail.com"
-- git add .
-- git commit -m "Update site"
-- git push --force --quiet "https://${GH_TOKEN}@${GH_REF}" master:blog
-- scp -o stricthostkeychecking=no -r ./* root@121.41.88.120:/home/blog/
+# - cd ./public
+# - git init
+# - git config user.name "Junedayday"
+# - git config user.email "junedayday@gmail.com"
+# - git add .
+# - git commit -m "Update site"
+# - git push --force --quiet "https://${GH_TOKEN}@${GH_REF}" master:blog
+# - scp -o stricthostkeychecking=no -r ./* root@121.41.88.120:/home/blog/
 env:
   global:
   - GH_REF: github.com/Junedayday/code_reading
   - secure: tIhHqUUP5KybH2/kr+C9WaYamwYlFRq+Q889Vqy+fc9oLp4ujJ+cihu0KZwrAAPBDzPzPlRmksO38UBrinLy2CFq3B8Hww945kBLn2L0cWi5gkDFIckMMldoC+Y94b26Uz9EUn0EPji6s84svJDTfl5sUEGMIYzxXUQFDmBCzZDFBIB24r+Mve62gtcICeKXI/av66YnsHBFyc84OUYfZu8HVDwAop8JFhQAtAPXQUPa3lwbNzqfcXH/n3VJKFsUwo1pCrW9Eaq30xQWH06LQcb06Lerhh2a0g4Bwc3LS50CQ6Ci7iSqBrtmkeIce/9p3lctLSI2DP6gk16CQ5KJYodbIpRe8Dgj8h3frhEjwJ5QI7UrIqiZhTLjznkReYomSvht/YHXq/v8F7y9GXRkBgGf6CnyTrKI17dKWw/xVeHqxmv8S95T0XOJP+uchOxRenYCQnlfZWbXh06VINgG9raFhGK7LNhYqSo29RQuTrybyiuq+QVHPRFlXA0peDuFGVDKFEYyzxcagrv2GOjE7ub4jSTNpc9hXzji9H0oEXXxIYOyBRTtemGz7aF6isuchuvtMTR755z48mpc8OlLG640kYopTiklQ1XsYGxMz799il6PeTVuEpw7/iO0Og8Iyq1oLoq8Pk5W86g4KViHWoomQxslCBhjc0Bn4hOqmiU=
 before_install:
-- openssl aes-256-cbc -K $encrypted_ef70518304f3_key -iv $encrypted_ef70518304f3_iv
+# - openssl aes-256-cbc -K $encrypted_ef70518304f3_key -iv $encrypted_ef70518304f3_iv
   -in id_rsa.enc -out ~\/.ssh/id_rsa -d
-- chmod 600 ~/.ssh/id_rsa
-- echo -e "Host 121.41.88.120\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+# - chmod 600 ~/.ssh/id_rsa
+# - echo -e "Host 121.41.88.120\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config

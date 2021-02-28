@@ -4,6 +4,7 @@ Start Our Travel for Go Code Reading
 
 ### 迁移完成
 
+- [Go语言学习路线](http://junes.tech/tags/Go-Study/)（当前更新中）
 - 开源项目 **剖析经典项目，提升实战能力**
   - [Kubernetes源码阅读](http://junes.tech/tags/Kubernetes/)
 - [初识gRPC](http://junes.tech/tags/gRPC/)

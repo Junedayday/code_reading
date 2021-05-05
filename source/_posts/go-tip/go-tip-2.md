@@ -7,7 +7,7 @@ tags:
 - Go-Tip
 ---
 
-![Go-Study](https://i.loli.net/2021/02/28/BnVH86E5owhsaFd.jpg)
+![Go-Study](https://i.loli.net/2021/05/05/2bmr98tG3xDneL5.jpg)
 
 ## 从Go 2 Error Proposal谈起
 

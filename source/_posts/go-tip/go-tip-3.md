@@ -176,11 +176,11 @@ error code is 1, message is Book was not found
 Book was not found
 bookName is War and Peace
 main.searchBook
-        /Users/didi/GoProject/godemo/main.go:98
+        /GoProject/godemo/main.go:98
 main.borrowOne
-        /Users/didi/GoProject/godemo/main.go:71
+        /GoProject/godemo/main.go:71
 main.main
-        /Users/didi/GoProject/godemo/main.go:60
+        /GoProject/godemo/main.go:60
 runtime.main
         /usr/local/go1.13.5/src/runtime/proc.go:203
 runtime.goexit

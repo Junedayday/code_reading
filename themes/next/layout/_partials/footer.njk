@@ -82,14 +82,19 @@
     {%- endif %}
     {{- __('footer.powered', next_url('https://hexo.io', 'Hexo', {class: 'theme-link'}) + ' & ' + next_url(next_site, 'NexT.' + theme.scheme, {class: 'theme-link'})) }}
   </div>
+
+<div class=BbeiAn-info">
+  {{ __('浙ICP备') }} -
+  <a href="http://www.miitbeian.gov.cn/">19051676号-1</a>
+  </a>
+</div>
 {%- endif %}
 
 {%- if theme.add_this_id %}
   <div class="addthis_inline_share_toolbox">
     <script src="//s7.addthis.com/js/300/addthis_widget.js#pubid={{ theme.add_this_id }}" async="async"></script>
-    <img src="https://static.dy208.cn/o_1dfilp8ruo521thr1hvf18ji17soa.png">
-    <a href="http://www.beian.miit.gov.cn/"  style="color:#f72b07" target="_blank">浙ICP备19051676号-1</a>
   </div>
+
 {%- endif %}
 
 {{- next_inject('footer') }}

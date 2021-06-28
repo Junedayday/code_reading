@@ -127,7 +127,7 @@ func (t *myZooTour) VisitPanda(panda *Panda) {
 
 这时，第二种处理方式明显会更简洁。
 
-> 一般推荐在工具类是采用这种方式，处理的内容比较直观，不会有太多异常case
+> 一般推荐在工具类中采用这种方式，处理的内容比较直观，不会有太多异常case
 
 
 
@@ -224,7 +224,7 @@ func BreakOnError(t ZooTour1, funcs []MyFunc) error {
 
 值得一提的是
 
-- `ContinueOnError`表示遇到了error有只记录下来，但整个流程继续往下跑
+- `ContinueOnError`表示遇到了error只记录下来，但整个流程继续往下跑
 - `BreakOnError`表示遇到了error就直接break，不再跑接下来的`MyFunc`
 
 

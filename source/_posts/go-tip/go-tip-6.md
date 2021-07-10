@@ -1,6 +1,6 @@
 ---
-title: Go语言技巧 - 5.【深入Go Module】探索最小版本选择的机制
-date: 2021-07-04 12:00:00
+title: Go语言技巧 - 6.【深入Go Module】探索最小版本选择的机制
+date: 2021-07-09 12:00:00
 categories: 
 - 成长分享
 tags:

@@ -1,5 +1,5 @@
 ---
-title: Go算法实战 - 1.【两数相加LeetCode-2】
+title: Go算法实战 - 1.【两数相加LeetCode-2】递归解法
 date: 2021-07-10 12:00:00
 categories: 
 - 成长分享
@@ -9,7 +9,7 @@ tags:
 
 ![Go-Leetcode](https://i.loli.net/2021/07/10/SbG3k5XFRlsJdOV.jpg)
 
-## 2. 两数相加
+## Leetcode-2 两数相加
 
 原题链接 https://leetcode-cn.com/problems/add-two-numbers/
 
@@ -262,9 +262,11 @@ func addTwoNumbersWithCarry(l1 *ListNode, l2 *ListNode, carry int) *ListNode {
 
 
 
-### C - 增加代码的扩展性
+### C - 增加代码的扩展性（推荐）
 
 在这个代码里，我们只支持2个`ListNode`的相加，就引入了4个`if-else`的分支，这就很难支持大量`ListNode`的扩展。
+
+**总体来说，我个人推荐这个解法，它的思路很清晰，也不会出现边界问题。**
 
 ```go
 func addTwoNumbers(l1 *ListNode, l2 *ListNode) *ListNode {
@@ -295,7 +297,15 @@ func addTwoNumbersWithCarry(l1 *ListNode, l2 *ListNode, carry int) *ListNode {
 }
 ```
 
-我们可以进一步改造成**不定参数**形式的函数签名：
+
+
+## 实战化特性
+
+在实际的项目中，我们会希望这个函数的扩展性能更好，例如支持多个输入参数。
+
+### 引入不定参数的特性
+
+我们进一步改造成**不定参数**形式的函数签名：
 
 ```go
 func addTwoNumbers(l1 *ListNode, l2 *ListNode) *ListNode {
@@ -315,7 +325,7 @@ func addTwoNumbersWithCarry(carry int, nodes ...*ListNode) *ListNode {
     node.Val += carry
     carry, node.Val = node.Val/10, node.Val%10 // 引入位操作
 
-    // 判断所有l是否为空
+    // 判断所有node是否为空
     var isEnd = true
     for k := range nodes {
         if nodes[k] != nil {

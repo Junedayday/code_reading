@@ -58,7 +58,7 @@ func Tour1(t ZooTour1, panda *Panda, tiger *Tiger) error {
 
 
 
-## 第二种风格 - 类似Try-Exception的代码风格
+## 第二种风格 - 类似Try-Catch的代码风格
 
 ```go
 type ZooTour2 interface {
@@ -83,7 +83,7 @@ func Tour2(t ZooTour2, panda *Panda, tiger *Tiger) error {
 }
 ```
 
-这一整块的代码风格非常类似**Try Exception**，即先写业务逻辑，在最后对错误进行集中处理。
+这一整块的代码风格非常类似**Try Catch**，即先写业务逻辑，在最后对错误进行集中处理。
 
 > 标准库中的`bufio.Scanner`就是参考这种方式实现的。
 
@@ -206,19 +206,19 @@ func Tour3(t ZooTour1, panda *Panda, tiger *Tiger) error {
 }
 
 func ContinueOnError(t ZooTour1, funcs []MyFunc) error {
-	for _, f := range funcs {
+  for _, f := range funcs {
     if err := f(t);err != nil {
       // continue
     }
-	}
+  }
 }
 
 func BreakOnError(t ZooTour1, funcs []MyFunc) error {
-	for _, f := range funcs {
-		if err := f(t);err != nil {
+  for _, f := range funcs {
+    if err := f(t);err != nil {
       // break
     }
-	}
+  }
 }
 ```
 

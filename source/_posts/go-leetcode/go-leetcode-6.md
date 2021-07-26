@@ -19,6 +19,53 @@ func isMatch(s string, p string) bool {
 
 
 
+## 基础解法
+
+我们先理一下正则匹配的大致思路：**逐个对比s和p两个字符串，匹配则继续往后，发现不匹配直接退出**。
+
+那么，我们先简化一下问题，看看代码的大致结构：
+
+
+
+### 普通字符串匹配
+
+```go
+func isMatch(s string, p string) bool {
+    if len(s) == 0 && len(p) == 0 {
+        return true
+    } else if len(s) == 0 || len(p) == 0 || s[0] != p[0] {
+        return false
+    }
+
+    return isMatch(s[1:], p[1:])
+}
+```
+
+这里的代码思路很清晰，我们重点要解决的是两个通配符`.`和`*`：
+
+### 单个字符匹配
+
+```go
+func isMatch(s string, p string) bool {
+    if len(s) == 0 && len(p) == 0 {
+        return true
+    } else if len(s) == 0 || len(p) == 0 {
+        return false
+    }
+
+    // 如果p[0]为. ，则必定匹配
+    if s[0] != p[0] && p[0] != '.' {
+        return false
+    }
+
+    return isMatch(s[1:], p[1:])
+}
+```
+
+
+
+
+
 ## 总结
 
 Leetcode第五题的难度不高，也让我们初次接触了 **动态规划** 这个思路。

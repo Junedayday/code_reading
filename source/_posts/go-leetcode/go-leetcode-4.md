@@ -27,7 +27,7 @@ func findMedianSortedArrays(nums1 []int, nums2 []int) float64 {
 
 > 这是我们遇到的第一道hard级别的题目，让我们一起尝试攻克它！
 
-
+<!-- more -->
 
 ## 基本解法
 

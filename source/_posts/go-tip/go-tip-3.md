@@ -15,7 +15,7 @@ tags:
 
 本篇里，我会具体到代码层面，谈谈如何在一个工程化的项目中利用`github.com/pkg/errors`包，完整实现一套的错误处理机制。
 
-
+<!-- more -->
 
 ## 全局定义的error实现 - MyError
 

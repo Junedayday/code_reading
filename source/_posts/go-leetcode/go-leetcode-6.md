@@ -17,7 +17,7 @@ func isMatch(s string, p string) bool {
 }
 ```
 
-
+<!-- more -->
 
 ## 基础解法
 

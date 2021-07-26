@@ -20,7 +20,7 @@ func longestPalindrome(s string) string {
 
 这道题中，我们也要注意**奇数和偶数**的边界情况。
 
-
+<!-- more -->
 
 ## 基本解法
 

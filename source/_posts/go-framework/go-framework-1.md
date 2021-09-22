@@ -1,5 +1,6 @@
 ---
 title: Go语言微服务框架 - 1.搭建gRPC+HTTP的双重网关服务
+date: 2021-08-19 12:00:00
 categories: 
 - 技术框架
 tags:
@@ -12,8 +13,10 @@ tags:
 
 整个迭代过程会围绕着两个核心思想进行：
 
-1. **关注技术选型背后的思想**。虽然最终某个技术选型的并不是你喜欢的方案（如RPC、日志、数据库等，你可以fork后自行调整），但我们更关注各个技术组件背后的原理与思想；
+1. **关注技术选型背后的思想**。虽然最终某个技术选型的可能并不是你喜欢的方案（如RPC、日志、数据库等，你可以fork后自行调整），但我们更关注各个技术组件背后的原理与思想，**选择的过程比结果更重要**；
 2. **聚焦于简单，关注可维护性**。技术框架是项目的基础设施，也是排查复杂业务问题的根本，所以框架层的功能会尽量考虑简单易用，可以让我们花更多的心思在业务开发中。许多开源库提供了大量扩展功能，但我们使用时会尽量**克制**，减少学习和排查问题时的成本。
+
+微服务框架系列重点介绍框架的搭建过程，期间对一些细节技术点的讲解，会在另一个系列**Go语言技巧系列**中展开。
 
 <!-- more -->
 
@@ -21,9 +24,15 @@ tags:
 
 ## v0.1.0：搭建gRPC+HTTP的双重网关服务
 
-[项目链接](https://github.com/Junedayday/micro_web_service/tree/v0.1.0)
+项目链接 https://github.com/Junedayday/micro_web_service/tree/v0.1.0
 
-[gRPC-gateway官方Github](https://github.com/grpc-ecosystem/grpc-gateway)
+gRPC-gateway官方Github https://github.com/grpc-ecosystem/grpc-gateway
+
+> 有很多朋友更喜欢使用Gin框架，但我依然选择了gRPC-gateway。
+>
+> 主要在于gRPC-gateway方案对接Google提供的各种开源插件生态都很棒。大家会在后面框架的迭代过程中慢慢体会到它的特性。
+>
+> 后续我也会对Gin做一些分析。
 
 ### 目标
 
@@ -31,7 +40,7 @@ tags:
 
 ### 关键技术点
 
-1. `protobuffer`定义IDL（Interface Define Language 接口定义语言）
+1. `protobuffer`定义IDL（Interface Definition Language 接口定义语言）
 2. `buf`工具生成`Go`代码（包括数据结构和RPC相关服务）
 3. `Go`项目实现RPC服务（实现RPC接口）
 

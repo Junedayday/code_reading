@@ -39,6 +39,8 @@ if err != nil {
 
 ## v0.2.0：实现加载静态配置文件
 
+项目链接 https://github.com/Junedayday/micro_web_service/tree/v0.2.0
+
 ### 目标
 
 从配置文件中解析数据到程序中，并具备更高的可读性和扩展性。

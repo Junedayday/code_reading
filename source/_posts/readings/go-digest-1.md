@@ -1,12 +1,11 @@
 ---
-​---
-title: 技术阅读摘要-1.十二要素应用原则
+title: 技术阅读摘要 - 1.十二要素应用原则
 date: 2021-10-12 12:00:00
 categories: 
 - 成长分享
 tags:
 - Digest
-​---
+
 ---
 
 ![Go-Framework](https://i.loli.net/2021/08/15/QZ3lGpkvgdfXW7R.jpg)

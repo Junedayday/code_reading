@@ -1,12 +1,10 @@
 ---
-​---
-title: 技术阅读摘要-3.Jaeger技术分析
+title: 技术阅读摘要 - 3.Jaeger技术分析
 date: 2021-10-20 12:00:00
 categories: 
 - 成长分享
 tags:
 - Digest
-​---
 ---
 
 ![Go-Framework](https://i.loli.net/2021/08/15/QZ3lGpkvgdfXW7R.jpg)

@@ -4,3 +4,4 @@ public/
 db.json
 .deploy_git
 package-lock.json
+.DS_Store

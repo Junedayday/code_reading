@@ -7,7 +7,7 @@ tags:
 - Go-Tip
 ---
 
-![Go-Study](https://i.loli.net/2021/05/05/2bmr98tG3xDneL5.jpg)
+![go-tip](https://cloud-fitter-1305666920.cos.ap-beijing.myqcloud.com/go-study.jpeg)
 
 ## 从一个示例讲起
 
@@ -184,8 +184,6 @@ func Req(target module.Version, base []string, reqs Reqs) ([]module.Version, err
 	})
 	return min, nil
 ```
-
-
 
 ## 小结
 

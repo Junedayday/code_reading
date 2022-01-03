@@ -7,7 +7,7 @@ tags:
 - Go-Tip
 ---
 
-![Go-Study](https://i.loli.net/2021/05/05/2bmr98tG3xDneL5.jpg)
+![go-tip](https://cloud-fitter-1305666920.cos.ap-beijing.myqcloud.com/go-study.jpeg)
 
 ## GORM库的官方文档
 

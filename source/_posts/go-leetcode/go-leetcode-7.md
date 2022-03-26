@@ -2,7 +2,7 @@
 title: Go算法实战 - 7.【盛最多水的容器LeetCode-11】
 date: 2021-08-02 12:00:00
 categories: 
-- 成长分享
+- 算法实战
 tags:
 - Go-Leetcode
 ---

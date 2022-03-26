@@ -2,7 +2,7 @@
 title: Go算法实战 - 5.【最长回文子串LeetCode-5】
 date: 2021-07-19 12:00:00
 categories: 
-- 成长分享
+- 算法实战
 tags:
 - Go-Leetcode
 ---

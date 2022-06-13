@@ -20,20 +20,6 @@ func CircleToOrigin(n int) int {
 
 <!-- more -->
 
-## 基础思路
-
-这道题需要一定的**动态规划**的基础，我们要对这道题做一定的简化，也就是将n变量变成n-1，看看前一步走到了哪。
-
-`第n步走到0 = 第n-1步走到12 + 第n-1步走到1`
-
-所以，我们要引入一个变量，就是当前走到了哪个位置。用代码表示，就是
-
-`result[n][pos] = result[n-1][pos+1] + result[n-1][pos-1] `
-
-我们再考虑到pos-1<0的情况，保证处于0到12的范围，代码就更新为:
-
-`result[n][pos] = result[n-1][(pos+1+13)%13] + result[n-1][(pos-1+13)%13]`
-
 ## 题解
 
 ```go
@@ -43,7 +29,7 @@ func CircleToOrigin(n int) int {
 	for i := range result {
 		result[i] = make([]int, 13)
 	}
-	// 初始处于原点
+	// 初始处于原点，i表示走的步数，j表示走到的位置
 	result[0][0] = 1
 	for i := 1; i <= n; i++ {
 		for j := 0; j < 13; j++ {
@@ -54,12 +40,6 @@ func CircleToOrigin(n int) int {
 	return result[n][0]
 }
 ```
-
-整个代码实现很清晰。我们可以将这个`13`提取出来作为一个变量，也就是环的大小可以自行变化。
-
-## 总结
-
-动态规划最重要的是写出递推的公式，是我们重点需要记忆的部分，剩余的就是考虑边界条件即可。
 
 
 

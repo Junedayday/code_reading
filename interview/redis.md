@@ -17,17 +17,9 @@
 #### 数据类型
 
 1. String - 简单动态字符串
-   1. int - long类型，ptr指向int
-      1. 8Byte元数据
-      2. 8Byte的INT
-   2. raw - 字符串且大于39字节，prt指向SDS（简单动态字符串）
-      1. 8Byte元数据
-      2. 8Byte的ptr
-      3. SDS
-   3. embstr - 字符串且小于等于39字节，redisObject紧跟sdshdr
-      1. 8Byte元数据
-      2. 8Byte的ptr
-      3. SDS
+   1. int - long类型，ptr指向int：8Byte元数据 + 8Byte的INT
+   2. raw - 字符串且大于39字节，prt指向SDS（简单动态字符串）： 8Byte元数据 + 8Byte的ptr+SDS
+   3. embstr - 字符串且小于等于39字节，redisObject紧跟sdshdr ： 8Byte元数据+8Byte的ptr+SDS
 2. List
    1. ziplist - 所有字符串元素长度都小于64字节，并且保存的元素数量小于512个
    2. linklist - 其余
@@ -563,6 +555,10 @@ Bitmap
 - DEL lock_key
   - 优化 - Lua脚本
   - 先取值，再比较unique_value是否相等，避免误释放
+- 不足
+  - SET后异常，导致无法释放，比如主从切换
+  - 误释放
+
 
 #### 分布式节点 - Redlock算法
 

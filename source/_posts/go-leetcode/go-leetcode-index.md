@@ -9,6 +9,8 @@ tags:
 
 ![Go-Leetcode](https://i.loli.net/2021/07/10/SbG3k5XFRlsJdOV.jpg)
 
+为了提升大家学习和刷题的效率，现将这部分做一次大的改版
+
 ## Leetcode经典
 
 - Leetcode-2 两数相加
@@ -21,6 +23,9 @@ tags:
 - Leetcode-11 [盛最多水的容器](https://junedayday.github.io/2021/08/02/go-leetcode/go-leetcode-7/)
 - Leetcode-15 [三数之和](https://junedayday.github.io/2021/08/08/go-leetcode/go-leetcode-8/)
 - Leetcode-17 [电话号码的字母组合](https://junedayday.github.io/2021/08/18/go-leetcode/go-leetcode-9/)
+- Leetcode-19 删除链表的倒数第 N 个结点
+- Leetcode-206 反转链表
+- Leetcode-704 二分查找
 
 
 
